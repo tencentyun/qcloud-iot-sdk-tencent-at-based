@@ -25,12 +25,13 @@ extern "C" {
 #define AT_END_MARK_LEN                4
 
 #ifndef AT_CMD_MAX_LEN
-#define AT_CMD_MAX_LEN                 128
+#define AT_CMD_MAX_LEN                 512
 #endif
 
 
 #define RING_BUFF_LEN         		   512			//uart ring buffer len
-#define CLINET_BUFF_LEN				   RING_BUFF_LEN
+//#define CLINET_BUFF_LEN				   (4*RING_BUFF_LEN)MAX_TOPIC_PAYLOAD_LEN
+#define CLINET_BUFF_LEN				   (MAX_TOPIC_PAYLOAD_LEN)
 #define GET_CHAR_TIMEOUT_MS			   (5000)
 #define CMD_TIMEOUT_MS			   	   (5000)
 #define CMD_RESPONSE_INTERVAL_MS 	   (100)
@@ -120,7 +121,7 @@ eAtResault at_client_wait_connect(uint32_t timeout);
 
 /* ========================== multiple AT client function ============================ */
 /* set AT client a line end sign */
-void at_obj_set_end_sign(char ch);
+void at_set_end_sign(char ch);
 
 /* Set URC(Unsolicited Result Code) table */
 void at_set_urc_table(at_client_t client, const at_urc_t table, uint32_t size);

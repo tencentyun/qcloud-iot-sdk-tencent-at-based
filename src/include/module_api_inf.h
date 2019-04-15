@@ -15,31 +15,36 @@
 #define _MODULE_API_INF_H_
 #include "stdint.h"
 #include "dev_config.h"
-
-typedef enum _eAtResault_{
-    AT_ERR_SUCCESS    = 0,      // 表示成功返回
-    AT_ERR_FAILURE    = -100,   // 表示失败返回
-    AT_ERR_INVAL      = -101,   // 表示参数无效错误
-    AT_ERR_NULL       = -102,   // 表示空指针
-
-	AT_ERR_TIMEOUT	  = -201,
-	AT_ERR_RESP_NULL  = -202,
-} eAtResault;
+#include "qcloud_iot_export_mqtt.h"
 
 typedef enum{
 	eMODULE_CELLULAR = 0, //2/3/4/5G NB etc.
 	eMODULE_WIFI = 1,
+	eMODULE_ESP8266 = 1,
 	eMODULE_DEFAULT = 2,
 }eModuleType;
 
+typedef enum{
+	eDISCONNECTED = 0,  //未连接
+	eCONNECTED = 1,		//已连接
+}eMqtt_State;
+
+
 eAtResault module_init(eModuleType eType);
 eAtResault module_handshake(uint32_t timeout);
-eAtResault module_info_set(sDevInfo *pInfo, eTlsMode eMode);
+eAtResault module_info_set(DeviceInfo *pInfo, eTlsMode eMode);
 eAtResault module_mqtt_conn(MQTTInitParams init_params);
 eAtResault module_mqtt_discon(void);
 eAtResault module_mqtt_pub(const char *topic, QoS eQos, const char *payload);
 eAtResault module_mqtt_publ(const char *topic, QoS eQos, const char *payload);
-eAtResault module_mqtt_sub(const char *topic, QoS eQos);
+eAtResault module_mqtt_sub(char *topic, QoS eQos, OnMessageHandler cb, void *contex);
 eAtResault module_mqtt_unsub(const char *topic);
-eAtResault module_mqtt_state(void);
+eAtResault module_mqtt_state(eMqtt_State *pState);
+eAtResault set_module_debug_level(int Log_level);
+eAtResault wifi_connect(const char *ssid, const char *pw);
+
+bool IOT_MQTT_IsConnected(void);
+
+
+
 #endif

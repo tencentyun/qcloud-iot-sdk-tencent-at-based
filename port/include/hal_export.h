@@ -12,6 +12,7 @@
 #define __HAL_EXPORT_H__
 #include "stdint.h"
 #include "stdbool.h"
+#include <stdarg.h>
 
 #define 	PARSE_THREAD_STACK_SIZE		1024
 #define 	OS_USED
@@ -40,9 +41,13 @@ int module_power_off(void);
 
 void HAL_Printf(_IN_ const char *fmt, ...);
 int HAL_Snprintf(_IN_ char *str, const int len, const char *fmt, ...);
+int HAL_Vsnprintf(_IN_ char *str, _IN_ const int len, _IN_ const char *format, va_list ap);
+
 void HAL_DelayMs(_IN_ uint32_t ms);
 void HAL_DelayUs(_IN_ uint32_t us);
 uint32_t HAL_GetTimeMs(void);
+uint32_t HAL_GetTimeSeconds(void);
+
 
 bool HAL_Timer_expired(Timer *timer);
 void HAL_Timer_countdown_ms(Timer *timer, unsigned int timeout_ms);

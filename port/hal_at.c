@@ -11,11 +11,13 @@
  * All rights reserved.
  ******************************************************************************
  */
+#include <string.h>
 #include "stm32f1xx_hal.h"
 #include "stm32f1xx_it.h"
 #include "ringbuff.h"
 #include "at_log.h"
 #include "hal_export.h"
+
 
 
 
@@ -78,10 +80,11 @@ int module_power_on(void)
 	HAL_DelayMs(100);
 	/*work around first byte miss*/
 	at_send_data("AT+RST\r\n", strlen("AT+RST\r\n"));
+	HAL_DelayMs(100);
 	at_send_data("AT+RST\r\n", strlen("AT+RST\r\n"));	
 	
     /* reset waiting delay */
-    HAL_DelayMs(1000);
+    HAL_DelayMs(2000);
 	
 	ring_buff_flush(&g_ring_buff);
 	

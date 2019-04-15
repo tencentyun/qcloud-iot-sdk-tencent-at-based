@@ -1,43 +1,25 @@
-/**
-******************************************************************************
-* @file           : mqtt_sample.c
-* @brief          : mqtt sample based on AT cmd
-******************************************************************************
-*
-* Copyright (c) 2019 Tencent. 
-* All rights reserved.
-******************************************************************************
-*/	
+/*
+ * Tencent is pleased to support the open source community by making IoT Hub available.
+ * Copyright (C) 2019 THL A29 Limited, a Tencent company. All rights reserved.
+
+ * Licensed under the MIT License (the "License"); you may not use this file except in
+ * compliance with the License. You may obtain a copy of the License at
+ * http://opensource.org/licenses/MIT
+
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is
+ * distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+ * either express or implied. See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ */
+
 #include "qcloud_iot_api_export.h"
-#include "ringbuff.h"
 #include "at_client.h"
 #include "string.h"
 
-
-void init_task(void *arg)
-{	
-	Log_d("init_task Entry...");
-	if(AT_ERR_SUCCESS != module_init(eMODULE_WIFI)) 
-	{
-		Log_e("module init failed");
-	}
-	else
-	{
-		Log_d("module init success");
-		
-		osThreadId threadId;
-		at_client_t pclient;
-		pclient = at_client_get();		
-		
-		//	Parser Func should run in a separate thread
-		if((NULL != pclient)&&(NULL != pclient->parser))
-		{
-			//hal_thread_create(&threadId, PARSE_THREAD_STACK_SIZE, osPriorityAboveNormal, pclient->parser, pclient);
-			hal_thread_create(&threadId, PARSE_THREAD_STACK_SIZE, osPriorityNormal, pclient->parser, pclient);
-		}	
-	}
-
-	hal_thread_destroy(NULL);
+void dataTopic_cb(char *msg, void *context)
+{
+	Log_d("data topic call back:%s",msg);
 }
 
 
@@ -46,121 +28,127 @@ void mqtt_demo_task(void *arg)
 	osThreadId threadId;
 	at_client_t pclient;
 	eAtResault Ret;
-	sDevInfo testInfo;
 	int count = 0;
 	char payload[256];
 	pclient = at_client_get();	
 
 	Log_d("mqtt_demo_task Entry...");
 	
-
-	if(AT_ERR_SUCCESS != module_init(eMODULE_WIFI)) 
+	do 
 	{
-		Log_e("module init failed");
-	}
-	else
-	{
-		Log_d("module init success");	
-	}
-	
-	//	Parser Func should run in a separate thread
-	if((NULL != pclient)&&(NULL != pclient->parser))
-	{
-		hal_thread_create(&threadId, PARSE_THREAD_STACK_SIZE, osPriorityNormal, pclient->parser, pclient);
-	}
-
-
-	while(AT_STATUS_INITIALIZED != pclient->status)
-	{	
-		HAL_SleepMs(1000);
-	}
-	
-	Log_d("Start shakehands with module...");
-	Ret = module_handshake(CMD_TIMEOUT_MS);
-	if(AT_ERR_SUCCESS != Ret)
-	{
-		Log_e("module connect fail,Ret:%d", Ret);
-		goto exit;
-	}
-	else
-	{
-		Log_d("module connect success");
-	}
-	
-	
-	memset((uint8_t *)&testInfo, 0x0, sizeof(sDevInfo));
-	strncpy(testInfo.productId, QCLOUD_IOT_MY_PRODUCT_ID, MAX_SIZE_OF_PRODUCT_ID);
-	strncpy(testInfo.devName, QCLOUD_IOT_MY_DEVICE_NAME, MAX_SIZE_OF_DEVICE_NAME);
-	strncpy(testInfo.devSerc, QCLOUD_IOT_DEVICE_SECRET, MAX_SIZE_OF_DEVICE_SERC);
-
-	Ret = module_info_set(&testInfo, USE_TLS_MODE);
-	if(AT_ERR_SUCCESS != Ret)
-	{
-		Log_e("module info set fail,Ret:%d", Ret);
-		goto exit;
-	}
-	else
-	{
-		Log_d("module info set success");
-	}
-	
-	MQTTInitParams init_params = DEFAULT_MQTTINIT_PARAMS;
-	Ret = module_mqtt_conn(init_params);
-	if(AT_ERR_SUCCESS != Ret)
-	{
-		Log_e("module mqtt conn fail,Ret:%d", Ret);
-		goto exit;
-	}
-	else
-	{
-		Log_d("module mqtt conn success");
-	}
-
-	
-	Ret = module_mqtt_sub("03UKNYBUZG/dev2/data", QOS0);
-	if(AT_ERR_SUCCESS != Ret)
-	{
-		Log_e("module mqtt sub fail,Ret:%d", Ret);
-		goto exit;
-	}
-	else
-	{
-		Log_d("module mqtt sub success");
-	}
-
-
-	while(1)
-	{
-		HAL_SleepMs(1000);
-		memset(payload, 0, 256);
-		HAL_Snprintf(payload, 256, "{\"action\": \"publish_test\", \"count\": \"%d\"}",count++);
-		Log_d("pub_msg:%s", payload);
-		Ret = module_mqtt_pub("03UKNYBUZG/dev2/data", QOS0, payload);
-		if(AT_ERR_SUCCESS != Ret)
+		if(AT_ERR_SUCCESS != module_init(eMODULE_WIFI)) 
 		{
-			Log_e("module mqtt pub fail,Ret:%d", Ret);
-			//goto exit;
+			Log_e("module init failed");
+			break;
 		}
 		else
 		{
-			Log_d("module mqtt pub success");
-		}	
+			Log_d("module init success");	
+		}
 		
-	}
+		//	Parser Func should run in a separate thread
+		if((NULL != pclient)&&(NULL != pclient->parser))
+		{
+			hal_thread_create(&threadId, PARSE_THREAD_STACK_SIZE, osPriorityNormal, pclient->parser, pclient);
+		}
 
+
+		while(AT_STATUS_INITIALIZED != pclient->status)
+		{	
+			HAL_SleepMs(1000);
+		}
+		
+		Log_d("Start shakehands with module...");
+		Ret = module_handshake(CMD_TIMEOUT_MS);
+		if(AT_ERR_SUCCESS != Ret)
+		{
+			Log_e("module connect fail,Ret:%d", Ret);
+			break;
+		}
+		else
+		{
+			Log_d("module connect success");
+		}
+		
 	
-exit:
+		Ret = iot_device_info_init(QCLOUD_IOT_MY_PRODUCT_ID, QCLOUD_IOT_MY_DEVICE_NAME, QCLOUD_IOT_DEVICE_SECRET);
+		if(AT_ERR_SUCCESS != Ret)
+		{
+			Log_e("dev info init fail,Ret:%d", Ret);
+			break;
+		}
+		
+		Ret = module_info_set(iot_device_info_get(), ePSK_TLS);
+		if(AT_ERR_SUCCESS != Ret)
+		{
+			Log_e("module info set fail,Ret:%d", Ret);
+			break;
+		}
 
+		
+		MQTTInitParams init_params = DEFAULT_MQTTINIT_PARAMS;
+		Ret = module_mqtt_conn(init_params);
+		if(AT_ERR_SUCCESS != Ret)
+		{
+			Log_e("module mqtt conn fail,Ret:%d", Ret);
+			break;
+		}
+		else
+		{
+			Log_d("module mqtt conn success");
+		}
+
+		static char topic_name[MAX_SIZE_OF_CLOUD_TOPIC] = {0};		
+		int size = HAL_Snprintf(topic_name, MAX_SIZE_OF_CLOUD_TOPIC, "%s/%s/data", iot_device_info_get()->product_id, iot_device_info_get()->device_name);
+			
+		if (size < 0 || size > sizeof(topic_name) - 1)
+		{
+			Log_e("topic content length not enough! content size:%d  buf size:%d", size, (int)sizeof(topic_name));
+			break;
+		}
+		Ret = module_mqtt_sub(topic_name, QOS0, dataTopic_cb, NULL);
+		
+		if(AT_ERR_SUCCESS != Ret)
+		{
+			Log_e("module mqtt sub fail,Ret:%d", Ret);
+			break;
+		}
+		else
+		{
+			Log_d("module mqtt sub success");
+		}
+
+
+		while(1)
+		{
+			HAL_SleepMs(1000);
+			memset(payload, 0, 256);
+			HAL_Snprintf(payload, 256, "{\"action\": \"publish_test\", \"count\": \"%d\"}",count++);
+			Log_d("pub_msg:%s", payload);
+			Ret = module_mqtt_pub("03UKNYBUZG/dev2/data", QOS0, payload);
+			if(AT_ERR_SUCCESS != Ret)
+			{
+				Log_e("module mqtt pub fail,Ret:%d", Ret);
+				break;
+			}
+			else
+			{
+				Log_d("module mqtt pub success");
+			}	
+			
+		}
+	
+	
+	}while (0);
+	
 	hal_thread_destroy(NULL);
 }
 
 void mqtt_sample(void)
 {
-	//osThreadId init_threadId;
 	osThreadId demo_threadId;
 	
 #ifdef OS_USED
-	//hal_thread_create(&init_threadId, 512, osPriorityNormal, init_task, NULL);
 	hal_thread_create(&demo_threadId, 512, osPriorityNormal, mqtt_demo_task, NULL);
 	hal_thread_destroy(NULL);
 #else

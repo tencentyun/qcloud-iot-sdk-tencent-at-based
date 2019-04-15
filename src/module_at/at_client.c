@@ -17,6 +17,8 @@
 #include "qcloud_iot_api_export.h"
 #include "at_sanity_check.h"
 #include "at_client.h"
+#include "at_utils.h"
+
 
 
 
@@ -42,9 +44,7 @@ sRingbuff g_ring_buff;
 static at_client sg_at_client;
 
 
-extern int at_vprintfln(const char *format, va_list args);
-extern void at_print_raw_cmd(const char *name, const char *cmd, int size);
-extern const char *at_get_last_cmd(int *cmd_size);
+
 
 #ifdef OS_USED	
 /**
@@ -569,7 +569,7 @@ int at_client_obj_recv(at_client_t client, char *buf, int size, int timeout)
  * @param client current AT client object
  * @param ch the end sign, can not be used when it is '\0'
  */
-void at_obj_set_end_sign(char ch)
+void at_set_end_sign(char ch)
 {
 	at_client_t client = at_client_get();
 	
@@ -640,7 +640,7 @@ static const at_urc *get_urc_obj(at_client_t client)
 		if ((prefix_len ? !strncmp(buffer, client->urc_table[i].cmd_prefix, prefix_len) : 1)
 				&& (suffix_len ? !strncmp(buffer + buf_sz - suffix_len, client->urc_table[i].cmd_suffix, suffix_len) : 1))
 		{
-			Log_d("matched:%s", client->urc_table[i].cmd_prefix);
+			//Log_d("matched:%s", client->urc_table[i].cmd_prefix);
 			return &client->urc_table[i];
 		}
 	}
@@ -677,13 +677,9 @@ static int at_recv_readline(at_client_t client)
 		}
 
 		/* is newline or URC data */
-		//printf("\r\nch:%02X last_ch:%02X", ch, last_ch);
 		if ((ch == '\n' && last_ch == '\r') ||(client->end_sign != 0 && ch == client->end_sign)
 				|| get_urc_obj(client))
 		{
-			//printf("\r\nch:%02X last_ch:%02X", ch, last_ch);
-			//printf("\r\nch:%c last_ch:%c", ch, last_ch);
-			//Log_d("recv_buffer:%s", client->recv_buffer);
 			if (is_full)
 			{
 				Log_e("read line failed. The line data length is out of buffer size(%d)!", client->recv_bufsz);

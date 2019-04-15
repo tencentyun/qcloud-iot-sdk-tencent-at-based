@@ -16,18 +16,105 @@
 #include <string.h>
 #include "qcloud_iot_api_export.h"
 #include "at_client.h"
+#include "utils_timer.h"
+
+#define  MQTT_CON_FLAG 			(1<<0)
+#define  MQTT_SUB_FLAG			(1<<1)
+#define  MQTT_PUB_FLAG			(1<<2)
+#define  MQTT_STATE_FLAG		(1<<3)
+#define  WIFI_CON_FLAG 			(1<<4)
+
+
+
+static uint32_t sg_flags = 0;
+
+
+static void setFlag(uint32_t flag)
+{
+	sg_flags |= flag&0xffffffff;
+}
+
+static void clearFlag(uint32_t flag)
+{
+	sg_flags &= (~flag)&0xffffffff;
+}
+
+static uint32_t getFlag(void)
+{
+	return sg_flags;
+}
+
+
+/*if os support event we can use event instand*/
+static bool waitFlag(uint32_t flag, uint32_t timeout)
+{
+	Timer timer;
+	bool Ret = false;
+	
+	countdown_ms(&timer, timeout);
+	
+	do
+	{
+		if(flag == (getFlag()&flag))
+		{
+			Ret = true;
+			break;
+		}
+		HAL_SleepMs(1);
+	}while(!expired(&timer));
+
+	return Ret;
+
+}
+
+
+static void urc_wifi_conn_func(const char *data, uint32_t size)
+{
+	Log_d("receve wifi conn urc(%d):%s", size, data);
+	setFlag(WIFI_CON_FLAG);
+}
 
 
 
 static void urc_pub_recv_func(const char *data, uint32_t size)
 {
-	Log_d("receve pub_msg(%d):%s", size, data);
+	//Log_d("receve pub_msg(%d):%s", size, data);
+	//HAL_DelayMs(200); 
+	deliver_message(data, size);
 }
+
+static void urc_mqtt_conn_func(const char *data, uint32_t size)
+{
+	Log_d("receve mqtt conn urc(%d):%s", size, data);
+	setFlag(MQTT_CON_FLAG);
+}
+
 
 static void urc_discon_func(const char *data, uint32_t size)
 {
 	Log_d("receve disconnect urc(%d):%s", size, data);
 	hal_thread_destroy(NULL);
+}
+
+static void urc_mqtt_sub_func(const char *data, uint32_t size)
+{
+	Log_d("receve mqtt sub urc(%d):%s", size, data);
+	setFlag(MQTT_SUB_FLAG);
+}
+
+
+static void urc_mqtt_state_func(const char *data, uint32_t size)
+{
+	//Log_d("receve mqtt state urc(%d):%s", size, data);
+	
+	if(strstr(data,"+TCMQTTSTATE:1"))
+	{
+		setFlag(MQTT_STATE_FLAG);
+	}
+	else
+	{
+		clearFlag(MQTT_STATE_FLAG);
+	}
 }
 
 static void urc_ota_status_func(const char *data, uint32_t size)
@@ -36,10 +123,18 @@ static void urc_ota_status_func(const char *data, uint32_t size)
 }
 
 
+
+
 static at_urc urc_table[] = {
-        {"+TCMQTTRCVPUB:", ":", urc_pub_recv_func},
+
+        {"+TCMQTTRCVPUB:", "\r\n", urc_pub_recv_func},
         {"+TCMQTTDISCON",  "\r\n", urc_discon_func},
-        {"+TCOTASTATUS",  ":", urc_ota_status_func},
+        {"+TCMQTTSUB:",    "\r\n", urc_mqtt_sub_func},
+        {"+TCMQTTSTATE:",  "\r\n", urc_mqtt_state_func},
+        {"+TCOTASTATUS:",  "\r\n", urc_ota_status_func},
+        {"+TCMQTTCONN:",   "\r\n", urc_mqtt_conn_func},
+        {"+TCTEMJAP:",   "\r\n", urc_wifi_conn_func},
+       
 };
 
 
@@ -99,88 +194,6 @@ exit:
     return ret;
 }
 
-#if 0
-eAtResault module_handshake(uint32_t timeout)
-{
-	eAtResault result = AT_ERR_SUCCESS;
-	at_response_t resp = NULL;
-	at_client_t client = at_client_get();
-	Timer timer;
-
-
-	if (client == NULL)
-	{
-		Log_e("input AT Client object is NULL, please create or get AT Client object!");
-		return AT_ERR_FAILURE;
-	}
-
-	resp = at_create_resp(16, 0, CMD_TIMEOUT_MS);
-	if (resp == NULL)
-	{
-		Log_e("No memory for response object!");
-		return AT_ERR_RESP_NULL;
-	}
-
-#ifdef OS_USED
-	HAL_MutexLock(client->lock);
-#endif
-
-	client->resp = resp;
-	resp->line_counts = 0;
-
-	HAL_Timer_countdown_ms(&timer, timeout);
-
-	at_send_data("ATE0\r\n", 6);
-	at_send_data("ATE0\r\n", 6);
-
-	/* Check whether it is already connected */	
-	do
-	{		
-		at_send_data("AT\r\n", 4);	
-		//Log_d("AT cmd send");
-#ifdef OS_USED	
-		HAL_SleepMs(CMD_RESPONSE_INTERVAL_MS);
-#else
-		HAL_DelayMs(CMD_RESPONSE_INTERVAL_MS);	
-#endif	
-
-
-		if (client->resp_notice)
-		{
-			if(AT_RESP_OK != client->resp_status)
-			{
-				Log_e("resp err,status:%d", client->resp_status);
-				result = AT_ERR_FAILURE;
-			}
-			else
-			{
-				break;
-			}
-			
-		}
-		else
-		{
-			continue;
-		}		
-			
-	}while (!HAL_Timer_expired(&timer));
-
-	if(HAL_Timer_expired(&timer))
-	{
-		Log_d("read ring buff timeout");
-		result = AT_ERR_TIMEOUT;
-	}
-
-	at_delete_resp(resp);
-
-	client->resp = NULL;
-	
-#ifdef OS_USED
-	HAL_MutexUnlock(client->lock);
-#endif
-	return result;
-}
-#endif
 
 eAtResault module_handshake(uint32_t timeout)
 {
@@ -232,16 +245,16 @@ eAtResault module_handshake(uint32_t timeout)
 /*
 * config dev info to module, do this operate only once in factroy is suggested
 */
-eAtResault module_info_set(sDevInfo *pInfo, eTlsMode eMode)
+eAtResault module_info_set(DeviceInfo *pInfo, eTlsMode eMode)
 {
 	eAtResault result = AT_ERR_SUCCESS;
 	at_response_t resp = NULL;
 
 	resp = at_create_resp(64, 0, CMD_TIMEOUT_MS);
 	
-	/* get module version */
+	/* Set dev info */
 	if(AT_ERR_SUCCESS !=  at_exec_cmd(resp, "AT+TCDEVINFOSET=%d,\"%s\",\"%s\",\"%s\"",\
-									eMode,pInfo->productId, pInfo->devName, pInfo->devSerc))
+									eMode,pInfo->product_id, pInfo->device_name, pInfo->devSerc))
     {
     	Log_e("cmd AT+TCDEVINFOSET exec err");
 		result = AT_ERR_FAILURE;
@@ -263,7 +276,10 @@ eAtResault module_mqtt_conn(MQTTInitParams init_params)
 	at_response_t resp = NULL;
 
 	resp = at_create_resp(64, 0, CMD_TIMEOUT_MS);
-	
+
+	/* clear sub flag*/
+    clearFlag(MQTT_CON_FLAG);
+	/* Start mqtt connect */
 	if(AT_ERR_SUCCESS !=  at_exec_cmd(resp, "AT+TCMQTTCONN=%d,%d,%d,%d,%d",init_params.tlsmod,\
 										init_params.command_timeout, init_params.keep_alive_interval_ms,\
 										init_params.clean_session,  init_params.auto_connect_enable))
@@ -273,6 +289,11 @@ eAtResault module_mqtt_conn(MQTTInitParams init_params)
 		//goto exit;
 	}
 
+	if(!waitFlag(MQTT_CON_FLAG, CMD_TIMEOUT_MS))
+	{
+		result = AT_ERR_FAILURE;
+	}
+	
 	if(resp)
 	{
 		at_delete_resp(resp);
@@ -287,8 +308,7 @@ eAtResault module_mqtt_discon(void)
 	eAtResault result = AT_ERR_SUCCESS;
 	at_response_t resp = NULL;
 
-	resp = at_create_resp(64, 0, CMD_TIMEOUT_MS);
-	
+	resp = at_create_resp(64, 0, CMD_TIMEOUT_MS);	
 	if(AT_ERR_SUCCESS !=  at_exec_cmd(resp, "AT+TCMQTTDISCONN"))			
 	{
 		Log_e("cmd AT+TCMQTTDISCONN exec err");
@@ -331,10 +351,27 @@ eAtResault module_mqtt_publ(const char *topic, QoS eQos, const char *payload)
 }
 
 
-eAtResault module_mqtt_sub(const char *topic, QoS eQos)
+eAtResault module_mqtt_sub(char *topic, QoS eQos, OnMessageHandler cb, void *contex)
 {
 	eAtResault result = AT_ERR_SUCCESS;
 	at_response_t resp = NULL;
+	SubscribeParams SubsParams;
+
+	SubsParams.topicFilter = topic;
+	SubsParams.eqos = eQos;
+	SubsParams.fp = cb;
+	SubsParams.context = contex;
+
+	
+	result = register_sub_topic(&SubsParams);
+	if(AT_ERR_SUCCESS !=  result)
+	{
+		Log_e("register sub topic err,ret:%d",result);
+		return result;
+	}
+
+	/* clear sub flag*/
+   clearFlag(MQTT_SUB_FLAG);
 
 	resp = at_create_resp(64, 0, CMD_TIMEOUT_MS);	
 	if(AT_ERR_SUCCESS !=  at_exec_cmd(resp, "AT+TCMQTTSUB=\"%s\",%d",topic,eQos))				
@@ -343,10 +380,23 @@ eAtResault module_mqtt_sub(const char *topic, QoS eQos)
 		result = AT_ERR_FAILURE;
 	}
 
+	if(!waitFlag(MQTT_SUB_FLAG, CMD_TIMEOUT_MS))
+	{
+		Log_e("%s sub fail", topic);
+		result = AT_ERR_FAILURE;
+	}
+	else
+	{
+		Log_d("%s sub success", topic);
+	}
+
 	if(resp)
 	{
 		at_delete_resp(resp);
 	}
+
+	clearFlag(MQTT_SUB_FLAG);
+
 	
 	return result;
 }
@@ -372,14 +422,16 @@ eAtResault module_mqtt_unsub(const char *topic)
 }
 
 
-eAtResault module_mqtt_state(void)
+eAtResault module_mqtt_state(eMqtt_State *pState)
 {
 	eAtResault result = AT_ERR_SUCCESS;
 	at_response_t resp = NULL;
+	//int argc, state;
+	//const char *req_expr = "+TCMQTTSTATE:%u";
 
-	resp = at_create_resp(64, 0, CMD_TIMEOUT_MS);
+	resp = at_create_resp(256, 0, CMD_TIMEOUT_MS);
 	
-	if(AT_ERR_SUCCESS !=  at_exec_cmd(resp, "AT+TCMQTTSTATE")) 			
+	if(AT_ERR_SUCCESS !=  at_exec_cmd(resp, "AT+TCMQTTSTATE?")) 			
 	{
 		Log_e("cmd AT+TCMQTTSTATE exec err");
 		result = AT_ERR_FAILURE;
@@ -392,4 +444,79 @@ eAtResault module_mqtt_state(void)
 	
 	return result;
 }
+
+
+bool IOT_MQTT_IsConnected(void) 
+{
+	eMqtt_State eState = eDISCONNECTED;
+	eAtResault result;
+	
+	result = module_mqtt_state(&eState);
+	if(AT_ERR_SUCCESS != result)
+	{
+		Log_e("Get mqtt state fail,ret:%d", result);
+		return false;
+	}
+	else
+	{
+		//Log_d("con_state:%u", (sg_flags&MQTT_STATE_FLAG)>>3);
+	}
+
+	return ((getFlag()&MQTT_STATE_FLAG) > 0)?true:false;	
+}
+
+#if (MODULE_TYPE == eMODULE_ESP8266)
+
+eAtResault set_module_debug_level(int Log_level)
+{
+	eAtResault result = AT_ERR_SUCCESS;
+	at_response_t resp = NULL;
+
+	resp = at_create_resp(64, 0, CMD_TIMEOUT_MS);	
+	if(AT_ERR_SUCCESS !=  at_exec_cmd(resp, "AT+TCTEMLOG=%d",Log_level))				
+	{
+		Log_e("cmd AT+TCTEMLOG exec err");
+		result = AT_ERR_FAILURE;
+	}
+
+	if(resp)
+	{
+		at_delete_resp(resp);
+	}
+	
+	return result;
+}
+
+eAtResault wifi_connect(const char *ssid, const char *pw)
+{
+	eAtResault result = AT_ERR_SUCCESS;
+	at_response_t resp = NULL;
+
+	/* clear sub flag*/
+    clearFlag(WIFI_CON_FLAG);
+	resp = at_create_resp(64, 0, CMD_TIMEOUT_MS);	
+	if(AT_ERR_SUCCESS !=  at_exec_cmd(resp, "AT+TCTEMJAP=\"%s\",\"%s\"",ssid, pw))				
+	{
+		Log_e("cmd AT+TCTEMLOG exec err");
+		result = AT_ERR_FAILURE;
+	}
+
+	if(!waitFlag(WIFI_CON_FLAG, CMD_TIMEOUT_MS))
+	{
+		Log_e("wifi connect fail");
+		result = AT_ERR_FAILURE;
+	}
+
+
+	if(resp)
+	{
+		at_delete_resp(resp);
+	}
+	
+	return result;
+}
+
+
+
+#endif
 

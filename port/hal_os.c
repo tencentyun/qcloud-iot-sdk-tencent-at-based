@@ -60,6 +60,12 @@ uint32_t HAL_GetTimeMs(void)
     return HAL_GetTick();
 }
 
+uint32_t HAL_GetTimeSeconds(void)
+{	
+    return HAL_GetTimeMs()/1000;
+}
+
+
 void HAL_DelayMs(_IN_ uint32_t ms)
 {
    (void)HAL_Delay(ms);
