@@ -5,8 +5,8 @@
 qcloud-iot-sdk-tecent-at-based 面向使用支持腾讯AT指令的模组(2/3/4/5G、NB、WIFI等)接入腾讯物联网平台的终端设备开发者，典型应用场景为MCU+腾讯定制AT模组，SDK完成实现了MCU和模组数据交互的AT框架，并基于AT框架配合腾讯AT指令，实现了MQTT、影子及数据模板的功能，同时提供了示例sample。开发者需要实现的HAL层适配接口见hal_export.h，需要实现串口的收发接口(中断接收)，延时函数，模组上下电及os相关接口适配（互斥锁、动态内存申请释放、线程创建），适配层接口单独剥离在port目录。
 
 ### qcloud-iot-sdk-tecent-at-based软件架构
+![AT_SDK_FRAMEWORK.jpg](https://i.loli.net/2019/04/16/5cb53f4a322a6.jpg)
 
-<img src="https://i.loli.net/2019/04/15/5cb46f7d27478.jpg" width=700 height=700 />
 
 ### 目录结构
 
