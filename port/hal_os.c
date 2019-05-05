@@ -16,10 +16,24 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
+#include <string.h>
+#include "stm32f1xx_hal.h"		
 #include "hal_export.h"
-#include "stm32f1xx_hal.h"
+#include "qcloud_iot_export_mqtt.h"
 
+#ifdef  DEBUG_DEV_INFO_USED
 
+static char sg_product_id[MAX_SIZE_OF_PRODUCT_ID + 1]	 = "PRODUCT_ID";
+static char sg_device_name[MAX_SIZE_OF_DEVICE_NAME + 1]  = "YOUR_DEVICE_NAME";
+
+#ifdef AUTH_MODE_CERT
+static char sg_device_cert_file_name[MAX_SIZE_OF_DEVICE_CERT_FILE_NAME + 1]      = "YOUR_DEVICE_NAME_cert.crt";
+static char sg_device_privatekey_file_name[MAX_SIZE_OF_DEVICE_KEY_FILE_NAME + 1] = "YOUR_DEVICE_NAME_private.key";
+#else
+char sg_device_secret[MAX_SIZE_OF_DEVICE_SERC + 1] = "YOUR_IOT_PSK";
+#endif
+
+#endif
 
 void HAL_Printf(_IN_ const char *fmt, ...)
 {
@@ -78,7 +92,6 @@ void hal_thread_create(volatile void* threadId, uint16_t stackSize, int Priority
 	threadId = osThreadCreate(osThread(parseTask), arg);
 	(void)threadId; //Eliminate warning
 }
-
 
 void hal_thread_destroy(void* threadId)
 {
@@ -179,7 +192,181 @@ void HAL_MutexUnlock(_IN_ void* mutex)
 
 #endif
 
+int HAL_GetProductID(char *pProductId, uint8_t maxlen)
+{
+#ifdef DEBUG_DEV_INFO_USED
+	if(strlen(sg_product_id) > maxlen){
+		return AT_ERR_FAILURE;
+	}
+
+	memset(pProductId, '\0', maxlen);
+	strncpy(pProductId, sg_product_id, maxlen);
+
+	return AT_ERR_SUCCESS;
+#else
+	HAL_Printf("HAL_GetProductID is not implement");
+	return AT_ERR_FAILURE;
+#endif
+}
 
 
+int HAL_GetDevName(char *pDevName, uint8_t maxlen)
+{
+#ifdef DEBUG_DEV_INFO_USED
+	if(strlen(sg_device_name) > maxlen){
+		return AT_ERR_FAILURE;
+	}
+
+	memset(pDevName, '\0', maxlen);
+	strncpy(pDevName, sg_device_name, maxlen);
+
+	return AT_ERR_SUCCESS;
+#else
+	HAL_Printf("HAL_GetDevName is not implement");
+	return AT_ERR_FAILURE;
+#endif
+}
 
 
+int HAL_SetProductID(const char *pProductId)
+{
+#ifdef DEBUG_DEV_INFO_USED
+	if(strlen(pProductId) > MAX_SIZE_OF_PRODUCT_ID){
+		return AT_ERR_FAILURE;
+	}
+
+	memset(sg_product_id, '\0', MAX_SIZE_OF_PRODUCT_ID);
+	strncpy(sg_product_id, pProductId, MAX_SIZE_OF_PRODUCT_ID);
+
+	return AT_ERR_SUCCESS;
+#else
+	HAL_Printf("HAL_SetProductID is not implement");
+	return AT_ERR_FAILURE;
+#endif
+}
+
+int HAL_SetDevName(const char *pDevName)
+{
+#ifdef DEBUG_DEV_INFO_USED
+	if(strlen(pDevName) > MAX_SIZE_OF_DEVICE_NAME){
+		return AT_ERR_FAILURE;
+	}
+
+	memset(sg_device_name, '\0', MAX_SIZE_OF_DEVICE_NAME);
+	strncpy(sg_device_name, pDevName, MAX_SIZE_OF_DEVICE_NAME);
+
+	return AT_ERR_SUCCESS;
+#else
+	HAL_Printf("HAL_SetDevName is not implement");
+	return AT_ERR_FAILURE;
+#endif
+}
+
+#ifdef AUTH_MODE_CERT	//证书 认证方式
+
+int HAL_GetDevCertName(char *pDevCert, uint8_t maxlen)
+{
+#ifdef DEBUG_DEV_INFO_USED
+	if(strlen(sg_device_cert_file_name) > maxlen){
+		return AT_ERR_FAILURE;
+	}
+
+	memset(pDevCert, '\0', maxlen);
+	strncpy(pDevCert, sg_device_cert_file_name, maxlen);
+
+	return AT_ERR_SUCCESS;
+#else
+	HAL_Printf("HAL_GetDevCertName is not implement");
+	return AT_ERR_FAILURE;
+#endif
+}
+
+int HAL_GetDevPrivateKeyName(char *pDevPrivateKey, uint8_t maxlen)
+{
+#ifdef DEBUG_DEV_INFO_USED
+	if(strlen(sg_device_privatekey_file_name) > maxlen){
+		return AT_ERR_FAILURE;
+	}
+
+	memset(pDevPrivateKey, '\0', maxlen);
+	strncpy(pDevPrivateKey, sg_device_privatekey_file_name, maxlen);
+
+	return AT_ERR_SUCCESS;
+#else
+	HAL_Printf("HAL_GetDevPrivateKeyName is not implement");
+	return AT_ERR_FAILURE;
+#endif
+
+}
+
+int HAL_SetDevCertName(char *pDevCert)
+{
+#ifdef DEBUG_DEV_INFO_USED
+	if(strlen(pDevCert) > MAX_SIZE_OF_DEVICE_CERT_FILE_NAME){
+		return AT_ERR_FAILURE;
+	}
+
+	memset(sg_device_cert_file_name, '\0', MAX_SIZE_OF_DEVICE_CERT_FILE_NAME);
+	strncpy(sg_device_cert_file_name, pDevCert, MAX_SIZE_OF_DEVICE_CERT_FILE_NAME);
+
+	return AT_ERR_SUCCESS;
+#else
+	HAL_Printf("HAL_SetDevCertName is not implement");
+	return AT_ERR_FAILURE;
+#endif
+}
+
+int HAL_SetDevPrivateKeyName(char *pDevPrivateKey)
+{
+#ifdef DEBUG_DEV_INFO_USED
+	if(strlen(pDevPrivateKey) > MAX_SIZE_OF_DEVICE_KEY_FILE_NAME){
+		return AT_ERR_FAILURE;
+	}
+
+	memset(sg_device_privatekey_file_name, '\0', MAX_SIZE_OF_DEVICE_KEY_FILE_NAME);
+	strncpy(sg_device_privatekey_file_name, pDevPrivateKey, MAX_SIZE_OF_DEVICE_KEY_FILE_NAME);
+
+	return AT_ERR_SUCCESS;
+#else
+	HAL_Printf("HAL_SetDevPrivateKeyName is not implement");
+	return AT_ERR_FAILURE;
+#endif
+}
+
+#else	//PSK 认证方式
+int HAL_GetDevSec(char *pDevSec, uint8_t maxlen)
+{
+#ifdef DEBUG_DEV_INFO_USED
+	if(strlen(sg_device_secret) > maxlen){
+		return AT_ERR_FAILURE;
+	}
+
+	memset(pDevSec, '\0', maxlen);
+	strncpy(pDevSec, sg_device_secret, maxlen);
+
+	return AT_ERR_SUCCESS;
+#else
+	HAL_Printf("HAL_GetDevSec is not implement");
+	return AT_ERR_FAILURE;
+#endif
+
+
+}
+
+int HAL_SetDevSec(const char *pDevSec)
+{
+#ifdef DEBUG_DEV_INFO_USED
+	if(strlen(pDevSec) > MAX_SIZE_OF_DEVICE_SERC){
+		return AT_ERR_FAILURE;
+	}
+
+	memset(sg_device_secret, '\0', MAX_SIZE_OF_DEVICE_SERC);
+	strncpy(sg_device_secret, pDevSec, MAX_SIZE_OF_DEVICE_SERC);
+
+	return AT_ERR_SUCCESS;
+#else
+	HAL_Printf("HAL_SetDevSec is not implement");
+	return AT_ERR_FAILURE;
+#endif
+}
+#endif

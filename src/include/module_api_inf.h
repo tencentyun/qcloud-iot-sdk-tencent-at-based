@@ -35,13 +35,14 @@ eAtResault module_handshake(uint32_t timeout);
 eAtResault module_info_set(DeviceInfo *pInfo, eTlsMode eMode);
 eAtResault module_mqtt_conn(MQTTInitParams init_params);
 eAtResault module_mqtt_discon(void);
-eAtResault module_mqtt_pub(const char *topic, QoS eQos, const char *payload);
-eAtResault module_mqtt_publ(const char *topic, QoS eQos, const char *payload);
+eAtResault module_mqtt_pub(const char *topic, QoS eQos, char *payload);
+eAtResault module_mqtt_publ(const char *topic, QoS eQos, char *payload);
 eAtResault module_mqtt_sub(char *topic, QoS eQos, OnMessageHandler cb, void *contex);
 eAtResault module_mqtt_unsub(const char *topic);
 eAtResault module_mqtt_state(eMqtt_State *pState);
 eAtResault set_module_debug_level(int Log_level);
-eAtResault wifi_connect(const char *ssid, const char *pw);
+eAtResault module_register_network(eModuleType eType);
+
 
 bool IOT_MQTT_IsConnected(void);
 

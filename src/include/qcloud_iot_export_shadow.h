@@ -91,6 +91,7 @@ typedef struct _JSONNode {
 #define TYPE_TEMPLATE_FLOAT  	JFLOAT
 #define TYPE_TEMPLATE_BOOL   	JINT8
 #define TYPE_TEMPLATE_STRING 	JSTRING
+#define TYPE_TEMPLATE_TIME 		JUINT32
 #define TYPE_TEMPLATE_JOBJECT 	JOBJECT
 
 
@@ -100,6 +101,7 @@ typedef int32_t   TYPE_DEF_TEMPLATE_ENUM;
 typedef float     TYPE_DEF_TEMPLATE_FLOAT;
 typedef char      TYPE_DEF_TEMPLATE_BOOL;
 typedef char      TYPE_DEF_TEMPLATE_STRING;
+typedef uint32_t  TYPE_DEF_TEMPLATE_TIME;
 typedef void *    TYPE_DEF_TEMPLATE_OBJECT;
 
 /**

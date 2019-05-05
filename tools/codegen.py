@@ -83,8 +83,8 @@ class iot_field:
 
             self.min_value = field_obj["define"]["min"]
             self.max_value = field_obj["define"]["max"]
-            self.default_value = self.min_value
-            if self.default_value < self.min_value or self.default_value > self.max_value:
+            self.default_value = field_obj["define"]["start"]
+            if float(self.default_value) < float(self.min_value) or float(self.default_value) > float(self.max_value):
                 raise ValueError("错误：{} 字段 default 指定的默认值超出 min~max 取值范围".format(name))
         elif self.type_name == "int":
             self.type_define = "TYPE_DEF_TEMPLATE_INT"
@@ -92,8 +92,8 @@ class iot_field:
 
             self.min_value = field_obj["define"]["min"]
             self.max_value = field_obj["define"]["max"]
-            self.default_value = self.min_value
-            if self.default_value < self.min_value or self.default_value > self.max_value:
+            self.default_value = field_obj["define"]["start"]
+            if int(self.default_value) < int(self.min_value) or int(self.default_value) > int(self.max_value):
                 raise ValueError("错误：{} 字段 default 指定的默认值超出 min~max 取值范围".format(name))
         elif self.type_name == "string":
             self.type_define = "TYPE_DEF_TEMPLATE_STRING"
@@ -102,6 +102,10 @@ class iot_field:
             self.min_value = field_obj["define"]["min"]
             self.max_value = field_obj["define"]["max"]
             self.default_value = "{'\\0'}"
+        elif self.type_name == "timestamp":
+            self.type_define = "TYPE_DEF_TEMPLATE_TIME"
+            self.type_id = "TYPE_TEMPLATE_TIME"
+            self.default_value = 0
         else:
             raise ValueError('{} 字段 数据类型 type={} 取值非法，有效值应为：bool,enum,int,float,string'.format(name, field_obj["type"]))
 
@@ -110,6 +114,9 @@ class iot_field:
 
     def get_id_c_member_name(self):
         return "m_{}".format(self.id)
+
+    def get_id_default_value(self):
+        return "{}".format(self.default_value)
 
     def get_id_define_str(self):
         return "#define {} {}".format(self.get_id_c_macro_name(), self.index)
@@ -122,9 +129,9 @@ class iot_field:
 
     def get_global_field_declare(self):
         if self.type_id == "TYPE_TEMPLATE_STRING":
-            return "TYPE_DEF_TEMPLATE_STRING sg_{}[{}+1];".format(self.id, str(self.max_value))
+            return "TYPE_DEF_TEMPLATE_STRING sg_{}[{}+1]={};".format(self.id, str(self.max_value),"{0}")
         else:
-            return "{} sg_{};".format(self.type_define, self.id)
+            return "{} sg_{} = {};".format(self.type_define, self.id, self.default_value)
 
     def get_meta_define_str(self, var_name):
         return '{{ "{}", &{}.{}, {} }},' \
@@ -235,14 +242,17 @@ class iot_struct:
         count = 0
         init_str = ""
         init_str += "static void _init_data_template(void)\n{\n"
-        init_str += "    memset((void *) & {}, 0, sizeof({}));\n".format(var_gProduct, struct_name)
+        #init_str += "    memset((void *) & {}, 0, sizeof({}));\n".format(var_gProduct, struct_name)
 
         for field in self.fields:
-            init_str += "    {}[{}].data_property.key  = \"{}\";\n".format(var_gTemplate, count, field.id)
+
             if field.type_define == "TYPE_DEF_TEMPLATE_STRING":
+                init_str += "    {}.{}[0] = {};\n".format(var_gProduct, field.get_id_c_member_name(), "'\\0'")
                 init_str += "    {}[{}].data_property.data = {}.{};\n".format(var_gTemplate, count, var_gProduct, field.get_id_c_member_name())
             else:
+                init_str += "    {}.{} = {};\n".format(var_gProduct, field.get_id_c_member_name(),field.get_id_default_value())
                 init_str += "    {}[{}].data_property.data = &{}.{};\n".format(var_gTemplate, count, var_gProduct, field.get_id_c_member_name())
+            init_str += "    {}[{}].data_property.key  = \"{}\";\n".format(var_gTemplate, count, field.id)
             init_str += "    {}[{}].data_property.type = {};\n\n".format(var_gTemplate, count, field.type_id)
             count += 1
         init_str += "};\n"
@@ -324,7 +334,7 @@ def main():
 
         output_event_config_file_name = args.dest + "/events_config.c"
         output_file = open(output_event_config_file_name, "w")
-        output_file.write("#ifdef EVENT_POST_ENABLED\n{}\n#endif".format(snippet.gen_event_config()))
+        output_file.write("#ifdef EVENT_POST_ENABLED\n{}\n#endif\n".format(snippet.gen_event_config()))
         output_file.close()
 
 

@@ -17,7 +17,7 @@
 #include "string.h"
 
 
-static char sg_shadow_update_buffer[512] = {0};
+static char sg_shadow_update_buffer[AT_CMD_MAX_LEN] = {0};
 size_t sg_shadow_update_buffersize = sizeof(sg_shadow_update_buffer) / sizeof(sg_shadow_update_buffer[0]);
 
 static DeviceProperty sg_shadow_property;
@@ -43,12 +43,22 @@ static void OnShadowUpdateCallback(void *pClient, Method method, RequestAck requ
 	sg_lastupdate_acked = true;
 }
 
-
 static eAtResault net_prepare(void)
 {
 	eAtResault Ret;
 	osThreadId threadId;
+	DeviceInfo sDevInfo;
 	at_client_t pclient = at_client_get();	
+
+	memset((char *)&sDevInfo, 0, sizeof(DeviceInfo));
+	Ret = (eAtResault)HAL_GetProductID(sDevInfo.product_id, MAX_SIZE_OF_PRODUCT_ID);
+	Ret |= (eAtResault)HAL_GetDevName(sDevInfo.device_name, MAX_SIZE_OF_DEVICE_NAME);
+	Ret |= (eAtResault)HAL_GetDevSec(sDevInfo.devSerc, MAX_SIZE_OF_DEVICE_SERC);
+	
+	if(AT_ERR_SUCCESS != Ret){
+		Log_e("Get device info err");
+		return AT_ERR_FAILURE;
+	}
 	
 	if(AT_ERR_SUCCESS != module_init(eMODULE_WIFI)) 
 	{
@@ -84,7 +94,7 @@ static eAtResault net_prepare(void)
 		Log_d("module connect success");
 	}
 	
-	Ret = iot_device_info_init(QCLOUD_IOT_MY_PRODUCT_ID, QCLOUD_IOT_MY_DEVICE_NAME, QCLOUD_IOT_DEVICE_SECRET);
+	Ret = iot_device_info_init(sDevInfo.product_id, sDevInfo.device_name, sDevInfo.devSerc);
 	if(AT_ERR_SUCCESS != Ret)
 	{
 		Log_e("dev info init fail,Ret:%d", Ret);
@@ -102,7 +112,6 @@ exit:
 	return Ret;
 }
 
-
 void shadow_demo_task(void *arg)
 {
 	eAtResault Ret;
@@ -117,6 +126,16 @@ void shadow_demo_task(void *arg)
 		if(AT_ERR_SUCCESS != Ret)
 		{
 			Log_e("net prepare fail,Ret:%d", Ret);
+			break;
+		}
+		
+		/*
+		 *注意：module_register_network 联网需要根据所选模组适配修改实现
+		*/
+		Ret = module_register_network(eMODULE_ESP8266);
+		if(AT_ERR_SUCCESS != Ret)
+		{			
+			Log_e("network connect fail,Ret:%d", Ret);
 			break;
 		}
 		
@@ -162,7 +181,6 @@ void shadow_demo_task(void *arg)
 			break;
 		}
 
-		HAL_SleepMs(1000);
 
 		//进行Shdaow Update操作的之前，最后进行一次同步操作，否则可能本机上shadow version和云上不一致导致Shadow Update操作失败
 		rc = IOT_Shadow_Get_Sync(get_shadow_client(), QCLOUD_IOT_MQTT_COMMAND_TIMEOUT);

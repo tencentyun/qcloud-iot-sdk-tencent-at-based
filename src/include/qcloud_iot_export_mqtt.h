@@ -40,6 +40,14 @@
 /* psk最大长度 */
 #define MAX_SIZE_OF_DEVICE_SERC  	 								(24)
 
+
+/* 设备证书文件名的最大长度 */
+#define MAX_SIZE_OF_DEVICE_CERT_FILE_NAME                           (128)
+
+/* 设备私钥文件名的最大长度 */
+#define MAX_SIZE_OF_DEVICE_KEY_FILE_NAME                            (128)
+
+
 /* 云端保留主题的最大长度 */
 #define MAX_SIZE_OF_CLOUD_TOPIC            ((MAX_SIZE_OF_DEVICE_NAME) + (MAX_SIZE_OF_PRODUCT_ID) + 64)
 
