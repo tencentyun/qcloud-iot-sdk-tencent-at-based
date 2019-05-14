@@ -109,7 +109,7 @@
                         "type":"int",
                         "min":"1",
                         "max":"100",
-                        "start":"1",
+                        "start":"0",
                         "step":"1",
                         "unit":"cm"
                     }
