@@ -194,5 +194,9 @@ Smaple目录一共有四个示例，分别是mqtt_sample.c、shadow_sample.c、d
 ### SDK接口说明
  关于 SDK 的更多使用方式及接口了解, 参见 qcloud_iot_api_export.h
 
+### AT模组PC端python测试工具
+ 开发阶段，可以使用tools目录下的python工具QCloud_AT_cmd_test_tool.py对支持腾讯IoT AT指令的模组进行基本验证和测试。
+ 使用示例： python QCloud_AT_cmd_test_tool.py --port COM5 --module ESP8266 --mode HUB --loop true
+ 具体用法请查看QCloud_AT_cmd_test_tool.py文件README部分
 
 
