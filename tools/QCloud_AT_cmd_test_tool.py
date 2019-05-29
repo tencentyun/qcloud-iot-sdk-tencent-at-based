@@ -4,7 +4,7 @@
 '''
 Author: Spike Lin(spikelin@tencent.com)
 Version: v1.0.0
-Date： 2019-05-28
+Date： 2019-05-29
 '''
 
 ######################## README ###################################
@@ -25,14 +25,20 @@ Date： 2019-05-28
 # WIFI: WIFI配网测试，须结合app进行。配网成功，则进入IoT Explorer循环测试模式
 # OTA： 可以进行Hub设备的OTA AT测试，并将成功获取到的固件保存到本地文件
 #
-# 4. AT模组硬件: ESP8266/NW-N21
-# 已支持模组包括乐鑫ESP8266 WiFi模组及有方N21 NB-IOT模组
+# 4. AT模组硬件:
+# 已验证模组包括乐鑫ESP8266 WiFi模组及有方NW-N21 NB-IOT模组
 # 如新的模组在连接网络的指令、转义字符处理及AT指令长度限制等等不一致，则需要增加定制化代码
 # 具体可以参考下面代码里面跟模组关键字如ESP8266或NW-N21有关的部分进行处理
 #
 # 5. 使用示例：
-# python QCloud_AT_cmd_test_tool.py --port COM5 --module ESP8266 --mode HUB --loop true
-# python QCloud_AT_cmd_test_tool.py -h
+# 工具help信息：
+#   python QCloud_AT_cmd_test_tool.py -h
+#
+# 对连接到串口COM5的NW-N21模组进行IoT Hub平台下的100次收发MQTT消息循环测试：
+#   python QCloud_AT_cmd_test_tool.py --port COM5 --module NW-N21 --mode HUB --loop_cnt 100
+#
+# WiFi模组配网：
+#   python QCloud_AT_cmd_test_tool.py --port COM5 --module ESP8266 --mode WIFI
 ######################## README ###################################
 
 import threading
@@ -425,7 +431,7 @@ class IoTBaseATCmd:
         # AT+TCDEVINFOSET=TLS_mode,"PRODUCTID","DEVICE_NAME","DEVICE_KEY"
         cmd = '''AT+TCDEVINFOSET=%d,"%s","%s","%s"''' % (tls, pid, dev_name, dev_key)
         ok_reply = '+TCDEVINFOSET:OK'
-        hint = cmd
+        hint = '''AT+TCDEVINFOSET="%s","%s"''' % (pid, dev_name)
 
         return self.serial.do_one_at_cmd(cmd, ok_reply, hint, self.err_list, self.cmd_timeout)
 
@@ -720,7 +726,72 @@ class IoTHubATCmd(IoTBaseATCmd):
         except AttributeError:
             print("Recv msg", payload, "after loop test finished!")
 
-    def iot_hub_test(self, loop=False):
+    def do_loop_test(self, loop_cnt):
+        self.loop_test_queue = queue.Queue()
+        self.subscribe_topic(HubTestTopic, 1, self.loop_test_handler)
+
+        send_cnt = 0
+        fail_cnt = 0
+        recv_cnt = 0
+        recv_err = 0
+        recv_timeout_err = 0
+        start_time = time.time()
+        max_send_recv_time = 0.0
+        while send_cnt < loop_cnt:
+            print("------IoT Hub MQTT QoS1 loop test cnt", send_cnt)
+            send_time = time.time()
+            loop_test_last_msg = get_hub_test_msg()
+            ret = self.publish_msg(HubTestTopic, 1, loop_test_last_msg)
+            send_cnt += 1
+            if not ret:
+                fail_cnt += 1
+                continue
+
+            recv_timeout_cnt = 0
+            while True:
+                try:
+                    recv_payload = self.loop_test_queue.get(timeout=2 * self.cmd_timeout)
+                    print("RECV MQTT loop test msg:", recv_payload)
+                    recv_timeout_cnt = 0
+                    if recv_payload == loop_test_last_msg:
+                        recv_cnt += 1
+                        send_recv_time = round(time.time() - send_time, 2) * 100
+                        if send_recv_time > max_send_recv_time:
+                            max_send_recv_time = send_recv_time
+                    else:
+                        print("*****Differ with last msg:", loop_test_last_msg)
+                        recv_err += 1
+                    break
+                except queue.Empty:
+                    print("*****RECV MQTT timeout!!", loop_test_last_msg)
+                    recv_timeout_cnt += 1
+                    if recv_timeout_cnt > 3:
+                        recv_timeout_cnt = 0
+                        recv_timeout_err += 1
+                        break
+                    continue
+                except KeyboardInterrupt:
+                    print("Test interrupted")
+                    return
+
+        end_time = time.time()
+        print("---------IoT Hub MQTT QoS1 loop test result:--------")
+        print("Test AT module:", self.at_module)
+        print("Test start time:", time.ctime(start_time), " End time:", time.ctime(end_time))
+        print("Test duration:", round(end_time - start_time, 1), "seconds")
+        print("MQTT Msg Send count:", send_cnt)
+        print("MQTT Msg Send failed count:", fail_cnt)
+        print("MQTT Msg Recv success count:", recv_cnt)
+        print("MQTT Msg Recv error total count:", recv_err, "timeout:", recv_timeout_err)
+        print('''MQTT Publish success rate %.2f%%''' % (round(((send_cnt - fail_cnt) / send_cnt) * 100, 2)))
+        print('''MQTT Send/Recv success rate %.2f%%''' % (round((recv_cnt / (loop_cnt - fail_cnt)) * 100, 2)))
+        print('''MQTT Msg Send/Recv Ave time: %.2f seconds Max time: %.2f seconds'''
+              % (round((end_time - start_time) / send_cnt, 2), round(max_send_recv_time / 100, 2)))
+        print("---------IoT Hub MQTT QoS1 loop test end------------")
+
+        del self.loop_test_queue
+
+    def iot_hub_test(self, loop=False, set_loop_cnt=0):
 
         while True:
             if self.is_mqtt_connected():
@@ -735,98 +806,53 @@ class IoTHubATCmd(IoTBaseATCmd):
             if not self.subscribe_topic(HubTestTopic, 0, self.default_topic_handler):
                 break
 
-            if not self.subscribe_hidden_topic("sys", 0, self.parse_sys_time):
-                break
-
-            if not self.publish_msg(HubTestTopic, 0, get_hub_test_msg()):
-                break
-
-            if not self.publish_msg(HubTestTopic, 1, HubTestLongMsg):
-                break
-
-            self.get_sys_time()
-            time.sleep(1)
-
-            while loop:
-                cmd = input("---------IoT Hub MQTT QoS1 loop test:--------\n"
-                            "Input:\n"
-                            "1. 'quit' to break\n"
-                            "2. pub/sub loop count times [1..3000]\n"                            
-                            "Your choice:\n").strip('\n')
-
-                if cmd.lower() == 'quit':
+            # one shot test
+            if not loop:
+                if not self.subscribe_hidden_topic("sys", 0, self.parse_sys_time):
                     break
 
-                try:
-                    loop_cnt = int(cmd)
-                except ValueError:
-                    print("Invalid loop times:", cmd)
-                    continue
+                if not self.publish_msg(HubTestTopic, 0, get_hub_test_msg()):
+                    break
 
-                if loop_cnt < 1 or loop_cnt > 3000:
-                    loop_cnt = 10
-                    print("loop times out of range, set to ", loop_cnt)
+                if not self.publish_msg(HubTestTopic, 1, HubTestLongMsg):
+                    break
 
-                self.loop_test_queue = queue.Queue()
-                self.subscribe_topic(HubTestTopic, 1, self.loop_test_handler)
+                self.get_sys_time()
+                time.sleep(1)
+                self.unsubscribe_all_topics()
+                time.sleep(0.5)
+                self.mqtt_disconnect()
+                return
 
-                send_cnt = 0
-                fail_cnt = 0
-                recv_cnt = 0
-                recv_err = 0
-                recv_timeout_err = 0
-                start_time = time.time()
-                max_send_recv_time = 0.0
-                while send_cnt < loop_cnt:
-                    print("------IoT Hub MQTT QoS1 loop test cnt", send_cnt)
-                    loop_test_last_msg = get_hub_test_msg()
-                    ret = self.publish_msg(HubTestTopic, 1, loop_test_last_msg)
-                    send_cnt += 1
-                    if not ret:
-                        fail_cnt += 1
+            # loop test
+            while loop:
+                if set_loop_cnt == 0:
+                    cmd = input("---------IoT Hub MQTT QoS1 loop test:--------\n"
+                                "Input:\n"
+                                "1. 'quit' to break\n"
+                                "2. pub/sub loop count times [1..3000]\n"                            
+                                "Your choice:\n").strip('\n')
+
+                    if cmd.lower() == 'quit':
+                        break
+
+                    try:
+                        loop_cnt = int(cmd)
+                    except ValueError:
+                        print("Invalid loop times:", cmd)
                         continue
-                    else:
-                        send_time = time.time()
 
-                    while True:
-                        try:
-                            recv_payload = self.loop_test_queue.get(timeout=2*self.cmd_timeout)
-                            print("RECV MQTT loop test msg:", recv_payload)
-                            if recv_payload == loop_test_last_msg:
-                                recv_cnt += 1
-                                send_recv_time = round(time.time() - send_time, 2)*100
-                                if send_recv_time > max_send_recv_time:
-                                    max_send_recv_time = send_recv_time
-                            else:
-                                print("*****Differ with last msg:", loop_test_last_msg)
-                                recv_err += 1
-                            break
-                        except queue.Empty:
-                            print("*****RECV MQTT timeout!!", loop_test_last_msg)
-                            recv_timeout_err += 1
-                            continue
-                        except KeyboardInterrupt:
-                            print("Test interrupted")
-                            return
+                    if loop_cnt < 1 or loop_cnt > 3000:
+                        loop_cnt = 10
+                        print("loop times out of range, set to ", loop_cnt)
 
-                end_time = time.time()
-                print("---------IoT Hub MQTT QoS1 loop test result:--------")
-                print("Test AT module:", self.at_module)
-                print("Test start time:", time.ctime(start_time), " End time:", time.ctime(end_time))
-                print("Test duration:", round( end_time - start_time, 1), "seconds")
-                print("MQTT Msg Send count:", send_cnt)
-                print("MQTT Msg Send failed count:", fail_cnt)
-                print("MQTT Msg Recv success count:", recv_cnt)
-                print("MQTT Msg Recv error total count:", recv_err, "timeout:", recv_timeout_err)
-                print('''MQTT Publish success rate %.2f%%''' % (round(((send_cnt - fail_cnt)/send_cnt)*100, 2)))
-                print('''MQTT Send/Recv success rate %.2f%%''' % (round((recv_cnt/(loop_cnt - fail_cnt))*100, 2)))
-                print('''MQTT Msg Send/Recv Ave time: %.2f seconds Max time: %.2f seconds'''
-                      % (round((end_time - start_time)/send_cnt, 1), round(max_send_recv_time/100, 2)))
-                print("---------IoT Hub MQTT QoS1 loop test end------------")
+                    self.do_loop_test(loop_cnt)
 
-                del self.loop_test_queue
-                # do it again?
-                continue
+                    # do it again
+                    continue
+                else:
+                    self.do_loop_test(set_loop_cnt)
+                    break
 
             self.unsubscribe_all_topics()
             time.sleep(0.5)
@@ -873,6 +899,8 @@ class IoTHubATCmd(IoTBaseATCmd):
 class IoTExplorerATCmd(IoTBaseATCmd):
     def __init__(self, at_module='ESP8266'):
         super(IoTExplorerATCmd, self).__init__(at_module)
+        self.template_result_err_cnt = 0
+        self.event_result_err_cnt = 0
 
     def template_msg_handler(self, topic, payload):
         try:
@@ -891,6 +919,8 @@ class IoTExplorerATCmd(IoTBaseATCmd):
                 print("----- template reply", ret_type, "msg ---------")
                 print(json.dumps(state, indent=2))
                 print("----- result %d version %d ---------" % (result, version))
+                if result != 0:
+                    self.template_result_err_cnt += 1
             elif ret_type == 'delta':
                 state = obj["payload"]["state"]
                 version = obj["payload"]["version"]
@@ -901,6 +931,7 @@ class IoTExplorerATCmd(IoTBaseATCmd):
             
         except KeyError:
             print("Invalid template JSON：", topic, payload)
+            self.template_result_err_cnt += 1
 
         return
 
@@ -912,8 +943,11 @@ class IoTExplorerATCmd(IoTBaseATCmd):
             print("----- event result msg ---------")
             print(json.dumps(obj, indent=2))
             print("----- event result_code %d ---------" % code)
+            if code != 0:
+                self.event_result_err_cnt += 1
         except KeyError:
             print("Invalid event JSON：", topic, payload)
+            self.event_result_err_cnt += 1
 
         return
 
@@ -953,7 +987,7 @@ class IoTExplorerATCmd(IoTBaseATCmd):
 
         return self.publish_msg(topic, qos, msg)
 
-    def iot_explorer_test(self, loop=False):
+    def iot_explorer_test(self, loop=False, loop_cnt=0):
 
         while True:
             if self.is_mqtt_connected():
@@ -1000,6 +1034,23 @@ class IoTExplorerATCmd(IoTBaseATCmd):
             while loop:
                 time.sleep(0.5)
 
+                if loop_cnt > 0:
+                    test_cnt = 0
+                    while test_cnt < loop_cnt:
+                        self.publish_template_msg(gen_template_update_msg())
+                        time.sleep(1)
+                        self.post_event_msg(gen_event_post_msg())
+                        time.sleep(1)
+                        test_cnt += 1
+
+                    print("---------IoT Explorer template/event loop test result:--------")
+                    print("Test AT module:", self.at_module)
+                    print("Test count:", test_cnt)
+                    print("Template result error count:", self.template_result_err_cnt)
+                    print("Event result error count:", self.event_result_err_cnt)
+                    print("---------IoT Explorer template/event loop test end--------")
+                    break
+
                 cmd = input("---------IoT Explorer template/event loop test:--------\n"
                             "Input:\n"
                             "1. 'quit' to break\n"
@@ -1039,13 +1090,15 @@ class ESPWiFiATCmd:
         self.boarding_state = 'off'
 
     def do_network_connection(self, ssid, psw):
-        if self.is_network_connected():
-            return True
+        for i in range(5):
+            if self.is_network_connected():
+                return True
 
-        if not self.set_wifi_mode(1):
-            return False
+            print("Connecting to wifi", ssid, psw)
+            self.set_wifi_mode(1)
+            self.join_wifi_network(ssid, psw)
 
-        return self.join_wifi_network(ssid, psw)
+        return False
 
     def join_wifi_network(self, ssid, psw):
         # AT+CWJAP="SSID","PSW"
@@ -1279,30 +1332,33 @@ def main():
     parser.add_argument('--version', action='version', version='%(prog)s v1.0.0')
     test_mode_group = parser.add_argument_group('AT commands mode parameters')
     test_mode_group.add_argument(
-            "--mode",
-            help="Test mode: CLI/WIFI/HUB/IE/OTA(default: HUB)",
-            default='HUB')
-
-    test_mode_group.add_argument(
-        "--loop",
-        help='To do loop test or not',
-        default="False")
-
-    test_mode_group.add_argument(
-        "--debug",
-        help='To print debug message or not',
-        default="False")
+            "--mode", required=True,
+            help="Test mode: CLI/WIFI/HUB/IE/OTA")
 
     test_mode_group.add_argument(
         "--module",
         help='AT module HW: ESP8266/NW-N21(default: ESP8266)',
         default="ESP8266")
 
+    test_mode_group.add_argument(
+        "--loop", type=str,
+        help='To do loop test or not',
+        default="False")
+
+    test_mode_group.add_argument(
+        "--loop_cnt", type=int,
+        help='loop test times count',
+        default=0)
+
+    test_mode_group.add_argument(
+        "--debug",
+        help='To print debug message or not',
+        default="False")
+
     serial_port_group = parser.add_argument_group('Serial port parameters')
     serial_port_group.add_argument(
-        "--port",
-        help='which serial port(default: COM8)',
-        default='COM8')
+        "--port", required=True,
+        help='which serial port. COM5 or /dev/ttyUSB0')
 
     serial_port_group.add_argument(
         "--baudrate",
@@ -1319,10 +1375,12 @@ def main():
     at_module = args.module
     test_mode = args.mode
 
-    if args.loop.upper() == "TRUE":
+    if args.loop.upper() == "TRUE" or args.loop_cnt > 0:
         loop = True
+        loop_cnt = args.loop_cnt
     else:
         loop = False
+        loop_cnt = 0
 
     global g_debug_print
     if args.debug.upper() == "TRUE":
@@ -1352,7 +1410,7 @@ def main():
 
         # IoT Hub test
         if test_mode.upper() == 'HUB':
-            IoTHubATCmd(at_module).iot_hub_test(loop)
+            IoTHubATCmd(at_module).iot_hub_test(loop, loop_cnt)
             break
 
         # IoT Hub OTA test
@@ -1362,7 +1420,7 @@ def main():
 
         # IoT Explorer test
         if test_mode.upper() == 'IE':
-            IoTExplorerATCmd(at_module).iot_explorer_test(loop)
+            IoTExplorerATCmd(at_module).iot_explorer_test(loop, loop_cnt)
             break
 
     SerialATClient().close_port()
