@@ -3,17 +3,18 @@
 
 '''
 Author: Spike Lin(spikelin@tencent.com)
-Version: v1.0.0
-Date： 2019-05-29
+Date： 2019-05-30
 '''
 
+Tool_Version = 'v1.0'
+
 ######################## README ###################################
-# 腾讯云IoT AT指令模组python测试工具说明：
+# QCloud_AT_cmd_test_tool.py 腾讯云IoT AT指令模组python测试工具说明：
 #
 # 1. 使用环境：基于python3和pyserial模块
 #   pip install pyserial
 #
-# 2. 需要先在腾讯云物联平台创建设备，目前仅支持PSK加密方式的设备：
+# 2. 需要先在腾讯云物联平台创建设备，目前测试工具仅支持PSK加密方式（TLS mode=1）的设备：
 #   Product_ID / Device_Name / Device_Key
 #
 # 3. 测试模式说明: CLI/HUB/IE/WIFI/OTA
@@ -30,15 +31,19 @@ Date： 2019-05-29
 # 如新的模组在连接网络的指令、转义字符处理及AT指令长度限制等等不一致，则需要增加定制化代码
 # 具体可以参考下面代码里面跟模组关键字如ESP8266或NW-N21有关的部分进行处理
 #
-# 5. 使用示例：
+# 5. MQTT连接参数：
+# 工具采用如下默认的连接参数，如需要修改请到IoTBaseATCmd.mqtt_connect函数进行修改
+#   timeout_ms=5000, keepalive=240, clean_session=1, reconnect=1
+#
+# 6. 使用示例：
 # 工具help信息：
 #   python QCloud_AT_cmd_test_tool.py -h
 #
-# 对连接到串口COM5的NW-N21模组进行IoT Hub平台下的100次收发MQTT消息循环测试：
-#   python QCloud_AT_cmd_test_tool.py --port COM5 --module NW-N21 --mode HUB --loop_cnt 100
+# 对连接到串口COM5的NW-N21模组进行IoT Hub平台100次MQTT收发消息循环测试：
+#   python QCloud_AT_cmd_test_tool.py -p COM5 -a NW-N21 -m HUB -n 100
 #
-# WiFi模组配网：
-#   python QCloud_AT_cmd_test_tool.py --port COM5 --module ESP8266 --mode WIFI
+# 对连接到串口COM5的ESP8266模组进行WiFi配网及IoT Explorer设备绑定测试：
+#   python QCloud_AT_cmd_test_tool.py -p COM5 -a ESP8266 -m WIFI
 ######################## README ###################################
 
 import threading
@@ -51,7 +56,7 @@ import json
 import random
 import hashlib
 
-############################## CUSTOM PARAMETERS ################################
+############################## CUSTOM PARAMETERS BEGIN ################################
 
 # IoT Explorer 测试 ############################################
 # IoT Explorer 测试可根据需要修改以下设备信息及测试msg内容
@@ -75,7 +80,7 @@ def gen_template_update_msg():
         },
         "version":%d,
         "clientToken": "clientToken-%d" }''' \
-                  % (brightness, color, power_switch, 0 , int(time.time()*10)%1000)
+                  % (brightness, color, power_switch, 0, int(time.time()*10)%1000)
     return IEUpdateMsg
 
 
@@ -117,8 +122,12 @@ def get_hub_test_msg():
 WiFi_SSID = 'YOUR_WIFI_SSID'
 WiFi_PSWD = 'YOUR_WIFI_PSW'
 
-############################## CUSTOM PARAMETERS ################################
+# OTA 测试版本参数 #######################################################
+OTA_local_version = '1.0.0'
 
+############################## CUSTOM PARAMETERS END ################################
+
+############################## AT MODULE CODE ################################
 # AT模组 定制化代码 #####################################################
 def esp_at_add_escapes(raw_str):
     return raw_str.replace('\"', '\\\"').replace(',', '\\,')
@@ -127,13 +136,13 @@ def nw_at_add_escapes(raw_str):
     return raw_str.replace('\"', '\\\"')
 
 g_at_module_custom_params = {
-    'ESP8266':{
+    'ESP8266': {
         'add_escapes': esp_at_add_escapes,      # 添加转义字符处理方法
         'err_list': ['ERROR', 'FAIL', 'busy'],  # AT指令出错提示
         'cmd_timeout': 5,                       # AT指令执行超时限制，单位：秒
         'at_cmd_max_len': 254,                  # 单条AT指令最大长度，单位：字节
         'at_cmd_publ_max_payload': 2048},       # PUBL发送长消息最大长度，单位：字节
-    'NW-N21':{
+    'NW-N21': {
         'add_escapes': nw_at_add_escapes,
         'err_list': ['ERROR', 'FAIL'],
         'cmd_timeout': 10,
@@ -150,7 +159,7 @@ g_serial_stopbits = serial.STOPBITS_ONE
 g_serial_timeout_s = 3
 
 
-################# python AT cmd framework #########################
+################# QCloud python AT cmd framework BEGIN #########################
 
 # 调试选项
 g_debug_print = False
@@ -174,7 +183,7 @@ class SerialATClient(threading.Thread, metaclass=Singleton):
             self.serial_port = serial.Serial(g_serial_port, g_serial_baudrate, g_serial_bytesize,
                                              g_serial_parity, g_serial_stopbits, g_serial_timeout_s)
         except serial.SerialException:
-            print("!!! Serial port", self.port, "open error!!")
+            print("!!! Serial port", g_serial_port, "open error!!")
             sys.exit(-1)
 
         self.connected = True
@@ -362,21 +371,6 @@ class SerialATClient(threading.Thread, metaclass=Singleton):
         return self.do_one_at_cmd(cmd, ok_reply, hint, ['ERROR', 'FAIL'], timeout=2)
 
 
-def interactive_test():
-    ser = SerialATClient(raw_mode=True)
-    ser.start_read()
-    while True:
-        cmd = input("CMD:").strip('\n')
-        if cmd.lower() == 'quit':
-            ser.close_port()
-            sys.exit(0)
-        elif len(cmd) == 0:
-            continue
-
-        ser.send_cmd(cmd)
-        time.sleep(1)
-
-
 class IoTBaseATCmd:
     def __init__(self, at_module='ESP8266'):
 
@@ -473,7 +467,7 @@ class IoTBaseATCmd:
         ok_reply = '+TCMQTTCONN:OK'
         hint = cmd
 
-        return self.serial.do_one_at_cmd(cmd, ok_reply, hint, self.err_list, 15)
+        return self.serial.do_one_at_cmd(cmd, ok_reply, hint, self.err_list, 3*self.cmd_timeout)
 
     def mqtt_disconnect(self):
         # AT+TCMQTTDISCONN
@@ -495,8 +489,8 @@ class IoTBaseATCmd:
 
         hint = "AT+TCMQTTPUBL Send msg"
         ok_reply = '+TCMQTTPUBL:OK'
-        if not self.serial.do_one_at_cmd(msg, ok_reply, hint, self.err_list, self.cmd_timeout):
-            print('>>pub long msg failed: ', msg)
+        if not self.serial.do_one_at_cmd(msg, ok_reply, hint, self.err_list, 10*self.cmd_timeout):
+            print('ERR: pub long msg failed: ', msg)
             return False
         else:
             return True
@@ -901,6 +895,8 @@ class IoTExplorerATCmd(IoTBaseATCmd):
         super(IoTExplorerATCmd, self).__init__(at_module)
         self.template_result_err_cnt = 0
         self.event_result_err_cnt = 0
+        self.template_result_ok_cnt = 0
+        self.event_result_ok_cnt = 0
 
     def template_msg_handler(self, topic, payload):
         try:
@@ -921,6 +917,8 @@ class IoTExplorerATCmd(IoTBaseATCmd):
                 print("----- result %d version %d ---------" % (result, version))
                 if result != 0:
                     self.template_result_err_cnt += 1
+                else:
+                    self.template_result_ok_cnt += 1
             elif ret_type == 'delta':
                 state = obj["payload"]["state"]
                 version = obj["payload"]["version"]
@@ -945,6 +943,8 @@ class IoTExplorerATCmd(IoTBaseATCmd):
             print("----- event result_code %d ---------" % code)
             if code != 0:
                 self.event_result_err_cnt += 1
+            else:
+                self.event_result_ok_cnt += 1
         except KeyError:
             print("Invalid event JSON：", topic, payload)
             self.event_result_err_cnt += 1
@@ -986,6 +986,47 @@ class IoTExplorerATCmd(IoTBaseATCmd):
         topic = '''$thing/up/event/%s/%s''' % (self.product_id, self.device_name)
 
         return self.publish_msg(topic, qos, msg)
+
+    def do_loop_test(self, loop_cnt):
+        self.template_result_err_cnt = 0
+        self.event_result_err_cnt = 0
+        self.template_result_ok_cnt = 0
+        self.event_result_ok_cnt = 0
+        test_cnt = 0
+        template_send_err_cnt = 0
+        template_send_ok_cnt = 0
+        event_post_ok_cnt = 0
+        event_post_err_cnt = 0
+        start_time = time.time()
+        while test_cnt < loop_cnt:
+            print("------IoT Explorer template/event loop test cnt", test_cnt)
+            if self.publish_template_msg(gen_template_update_msg()):
+                template_send_ok_cnt += 1
+            else:
+                template_send_err_cnt += 1
+
+            time.sleep(1)
+            if self.post_event_msg(gen_event_post_msg()):
+                event_post_ok_cnt += 1
+            else:
+                event_post_err_cnt += 1
+
+            time.sleep(1)
+            test_cnt += 1
+
+        end_time = time.time()
+        print("---------IoT Explorer template/event loop test result:--------")
+        print("Test AT module:", self.at_module)
+        print("Test start time:", time.ctime(start_time), " End time:", time.ctime(end_time))
+        print("Test duration:", round(end_time - start_time, 1), "seconds")
+        print("Test count:", test_cnt)
+        print("Template send OK count:", template_send_ok_cnt, " send error count:", template_send_err_cnt)
+        print('''Template result OK count: %d  error count: %d''' % (self.template_result_ok_cnt, self.template_result_err_cnt))
+        print('''Template Publish success rate %.2f%%''' % (round((self.template_result_ok_cnt / test_cnt) * 100, 2)))
+        print("Event post OK count:", event_post_ok_cnt, " post error count:", event_post_err_cnt)
+        print('''Event result OK count: %d  error count: %d''' % (self.event_result_ok_cnt, self.event_result_err_cnt))
+        print('''Event Post success rate %.2f%%''' % (round((self.event_result_ok_cnt / test_cnt) * 100, 2)))
+        print("---------IoT Explorer template/event loop test end--------")
 
     def iot_explorer_test(self, loop=False, loop_cnt=0):
 
@@ -1035,20 +1076,7 @@ class IoTExplorerATCmd(IoTBaseATCmd):
                 time.sleep(0.5)
 
                 if loop_cnt > 0:
-                    test_cnt = 0
-                    while test_cnt < loop_cnt:
-                        self.publish_template_msg(gen_template_update_msg())
-                        time.sleep(1)
-                        self.post_event_msg(gen_event_post_msg())
-                        time.sleep(1)
-                        test_cnt += 1
-
-                    print("---------IoT Explorer template/event loop test result:--------")
-                    print("Test AT module:", self.at_module)
-                    print("Test count:", test_cnt)
-                    print("Template result error count:", self.template_result_err_cnt)
-                    print("Event result error count:", self.event_result_err_cnt)
-                    print("---------IoT Explorer template/event loop test end--------")
+                    self.do_loop_test(loop_cnt)
                     break
 
                 cmd = input("---------IoT Explorer template/event loop test:--------\n"
@@ -1080,6 +1108,8 @@ class IoTExplorerATCmd(IoTBaseATCmd):
 
             # one shot test
             return
+
+################# QCloud python AT cmd framework END #########################
 
 
 class ESPWiFiATCmd:
@@ -1327,41 +1357,57 @@ def at_module_network_connect(at_module):
         return True
 
 
+def interactive_test():
+    ser = SerialATClient(raw_mode=True)
+    ser.start_read()
+    while True:
+        cmd = input("CMD:").strip('\n')
+        if cmd.lower() == 'quit':
+            ser.close_port()
+            sys.exit(0)
+        elif len(cmd) == 0:
+            continue
+
+        ser.send_cmd(cmd)
+        time.sleep(1)
+
+
 def main():
-    parser = argparse.ArgumentParser(description="QCloud IoT AT commands test tool")
-    parser.add_argument('--version', action='version', version='%(prog)s v1.0.0')
+    parser = argparse.ArgumentParser(description="QCloud IoT AT commands test tool",
+                                     epilog="e.g.  python QCloud_AT_cmd_test_tool.py -p COM5 -a NW-N21 -m HUB")
+    parser.add_argument('--version', '-v', action='version', version='%(prog)s: '+Tool_Version)
     test_mode_group = parser.add_argument_group('AT commands mode parameters')
     test_mode_group.add_argument(
-            "--mode", required=True,
+            "--mode", "-m", required=True,
             help="Test mode: CLI/WIFI/HUB/IE/OTA")
 
     test_mode_group.add_argument(
-        "--module",
+        "--at_module", "-a",
         help='AT module HW: ESP8266/NW-N21(default: ESP8266)',
         default="ESP8266")
 
     test_mode_group.add_argument(
-        "--loop", type=str,
+        "--loop", '-l', type=str,
         help='To do loop test or not',
         default="False")
 
     test_mode_group.add_argument(
-        "--loop_cnt", type=int,
+        "--loop_cnt", '-n', type=int,
         help='loop test times count',
         default=0)
 
     test_mode_group.add_argument(
-        "--debug",
+        "--debug", '-d',
         help='To print debug message or not',
         default="False")
 
     serial_port_group = parser.add_argument_group('Serial port parameters')
     serial_port_group.add_argument(
-        "--port", required=True,
-        help='which serial port. COM5 or /dev/ttyUSB0')
+        "--port", '-p', required=True,
+        help='which serial port. e.g. COM5 or /dev/ttyUSB0')
 
     serial_port_group.add_argument(
-        "--baudrate",
+        "--baudrate", '-b',
         help='serial port baudrate(default: 115200)',
         default=115200)
 
@@ -1372,8 +1418,8 @@ def main():
     global g_serial_baudrate
     g_serial_baudrate = args.baudrate
 
-    at_module = args.module
-    test_mode = args.mode
+    at_module = args.at_module.upper()
+    test_mode = args.mode.upper()
 
     if args.loop.upper() == "TRUE" or args.loop_cnt > 0:
         loop = True
@@ -1388,10 +1434,14 @@ def main():
     else:
         g_debug_print = False
 
+    if not test_mode in ['CLI', 'WIFI', 'HUB', 'OTA', 'IE']:
+        print("Invalid test mode", test_mode)
+        return
+
     # Let's Rock'n'Roll
 
     # interactive command line test
-    if test_mode.upper() == 'CLI':
+    if test_mode == 'CLI':
         interactive_test()
         return
 
@@ -1400,7 +1450,7 @@ def main():
     SerialATClient().echo_off()
     while True:
         # WiFi boarding test
-        if test_mode.upper() == 'WIFI':
+        if test_mode == 'WIFI':
             ESPWiFiATCmd().wifi_boarding_test()
             break
 
@@ -1409,17 +1459,17 @@ def main():
             break
 
         # IoT Hub test
-        if test_mode.upper() == 'HUB':
+        if test_mode == 'HUB':
             IoTHubATCmd(at_module).iot_hub_test(loop, loop_cnt)
             break
 
         # IoT Hub OTA test
-        if test_mode.upper() == 'OTA':
-            IoTHubATCmd(at_module).ota_update_test("1.0.0")
+        if test_mode == 'OTA':
+            IoTHubATCmd(at_module).ota_update_test(OTA_local_version)
             break
 
         # IoT Explorer test
-        if test_mode.upper() == 'IE':
+        if test_mode == 'IE':
             IoTExplorerATCmd(at_module).iot_explorer_test(loop, loop_cnt)
             break
 
