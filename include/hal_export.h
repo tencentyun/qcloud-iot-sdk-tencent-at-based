@@ -10,23 +10,17 @@
   
 #ifndef __HAL_EXPORT_H__
 #define __HAL_EXPORT_H__
+#include <stdarg.h>
 #include "stdint.h"
 #include "stdbool.h"
-#include <stdarg.h>
+#include "config.h"
 
 #define 	PARSE_THREAD_STACK_SIZE		1024
-#define 	OS_USED
+
 #define 	_IN_            /* 表明这是一个输入参数. */
 #define		_OU_            /* 表明这是一个输出参数. */
 #define 	HAL_AT_ERROR	   -1  
 #define 	HAL_AT_OK		   0
-
-#define  	AUTH_MODE_KEY
-#define 	DEBUG_DEV_INFO_USED
-
-#ifndef 	AUTH_MODE_KEY	//非PSK认证则为证书认证
-#define		AUTH_MODE_CERT
-#endif
 
 //#define 	AT_PRINT_RAW_CMD
 
@@ -34,8 +28,6 @@
 #ifdef OS_USED
 #include "cmsis_os.h"
 #endif
-
-typedef void * osThreadId;
 
 typedef struct _Timer_ {
     uint32_t end_time;
@@ -62,18 +54,11 @@ void HAL_Timer_countdown(Timer *timer, unsigned int timeout);
 int HAL_Timer_remain(Timer *timer); 
 void HAL_Timer_init(Timer *timer); 
 
-int HAL_GetProductID(char *pProductId, uint8_t maxlen);
-int HAL_GetDevName(char *pDevName, uint8_t maxlen);
-int HAL_SetProductID(const char *pProductId);
-int HAL_SetDevName(const char *pDevName);
-int HAL_GetDevCertName(char *pDevCert, uint8_t maxlen);
-int HAL_GetDevPrivateKeyName(char *pDevPrivateKey, uint8_t maxlen);
-int HAL_SetDevCertName(char *pDevCert);
-int HAL_SetDevPrivateKeyName(char *pDevPrivateKey);
-int HAL_GetDevSec(char *pDevSec, uint8_t maxlen);
-int HAL_SetDevSec(const char *pDevSec);
+int HAL_SetDevInfo(void *pdevInfo);
+int HAL_GetDevInfo(void *pdevInfo);
 
 #ifdef OS_USED
+typedef void * osThreadId;
 void hal_thread_create(volatile void* threadId, uint16_t stackSize, int Priority, void (*fn)(void*), void* arg);
 void hal_thread_destroy(void* threadId);
 void HAL_SleepMs(_IN_ uint32_t ms);

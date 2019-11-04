@@ -13,45 +13,46 @@
  *
  */
 
-#ifndef IOT_SHADOW_CLIENT_COMMON_H_
-#define IOT_SHADOW_CLIENT_COMMON_H_
+#ifndef IOT_DATA_TEMPLATE_CLIENT_COMMON_H_
+#define IOT_DATA_TEMPLATE_CLIENT_COMMON_H_
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#include "shadow_client.h"
-#include "qcloud_iot_export_error.h"
+#include "data_template_client.h"
 
 /**
  * @brief 如果没有订阅delta主题, 则进行订阅, 并注册相应设备属性
  *
- * @param pShadow   shadow client
+ * @param pTemplate   template client
  * @param pProperty 设备属性
  * @param callback  相应设备属性处理回调函数
- * @return          返回AT_ERR_SUCCESS, 表示成功
+ * @return          返回QCLOUD_ERR_SUCCESS, 表示成功
  */
-int shadow_common_register_property_on_delta(Qcloud_IoT_Shadow *pShadow, DeviceProperty *pProperty, OnPropRegCallback callback);
+int template_common_register_property_on_delta(Qcloud_IoT_Template *pTemplate, DeviceProperty *pProperty, OnPropRegCallback callback);
 
 /**
  * @brief 移除注册过的设备属性
  *
- * @param pShadow   shadow client
+ * @param pTemplate   template client
  * @param pProperty 设备属性
- * @return          返回AT_ERR_SUCCESS, 表示成功
+ * @return          返回QCLOUD_ERR_SUCCESS, 表示成功
  */
-int shadow_common_remove_property(Qcloud_IoT_Shadow *pshadow, DeviceProperty *pProperty);
+int template_common_remove_property(Qcloud_IoT_Template *ptemplate, DeviceProperty *pProperty);
 
 /**
  * @brief 检查注册属性是否已经存在
  *
- * @param pShadow   shadow client
+ * @param pTemplate   template client
  * @param pProperty 设备属性
  * @return          返回 0, 表示属性不存在
  */
-int shadow_common_check_property_existence(Qcloud_IoT_Shadow *pshadow, DeviceProperty *pProperty);
+int template_common_check_property_existence(Qcloud_IoT_Template *ptemplate, DeviceProperty *pProperty);
+
+
 #ifdef __cplusplus
 }
 #endif
 
-#endif //IOT_SHADOW_CLIENT_COMMON_H_
+#endif //IOT_DATA_TEMPLATE_CLIENT_COMMON_H_

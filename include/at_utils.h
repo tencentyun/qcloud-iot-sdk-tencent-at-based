@@ -17,7 +17,9 @@
 #include <stdio.h>
 #include <stdarg.h>
 
-//#define AT_PRINT_RAW_CMD
+#define AT_PRINT_RAW_CMD
+#undef  AT_PRINT_RAW_CMD
+
 #define WIDTH_SIZE           32
 
 #ifndef __INT_MAX__
@@ -37,6 +39,8 @@ const char *at_get_last_cmd(int *cmd_size);
 int at_req_parse_args(const char *req_args, const char *req_expr, ...);
 int at_sscanf(const char * buf, const char * fmt, va_list args);
 void at_strip(char *str, const char patten);
+void chr_strip(char *str, const char patten);
+
 
 
 #endif
