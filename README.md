@@ -1,4 +1,4 @@
-##  qcloud-iot-sdk-tecent-at-based 
+##  qcloud-iot-sdk-tencent-at-based 
 
 ### 介绍
 
