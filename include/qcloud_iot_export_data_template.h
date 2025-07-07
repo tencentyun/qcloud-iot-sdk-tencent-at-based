@@ -1,6 +1,6 @@
 /*
  * Tencent is pleased to support the open source community by making IoT Hub available.
- * Copyright (C) 2016 THL A29 Limited, a Tencent company. All rights reserved.
+ * Copyright (C) 2016 Tencent. All rights reserved.
 
  * Licensed under the MIT License (the "License"); you may not use this file except in
  * compliance with the License. You may obtain a copy of the License at
@@ -23,10 +23,10 @@ extern "C" {
 #include "qcloud_iot_export_mqtt.h"
 #include "qcloud_iot_export_method.h"
 
-#define  MAX_CONTORL_REPLY_STATUS_LEN		64		   // control»Ø¸´ÏûÏ¢ÖÐ£¬status×Ö´®µÄ×î´ó³¤¶È£¬¿ÉÒÔ¸ü¾ß¾ßÌå²úÆ·³¡¾°ÐÞ¸Ä
+#define  MAX_CONTORL_REPLY_STATUS_LEN		64		   // controlï¿½Ø¸ï¿½ï¿½ï¿½Ï¢ï¿½Ð£ï¿½statusï¿½Ö´ï¿½ï¿½ï¿½ï¿½ï¿½ó³¤¶È£ï¿½ï¿½ï¿½ï¿½Ô¸ï¿½ï¿½ß¾ï¿½ï¿½ï¿½ï¿½Æ·ï¿½ï¿½ï¿½ï¿½ï¿½Þ¸ï¿½
 
 /**
- * @brief ¶¨ÒåÊý¾ÝÄ£°åµÄÊý¾ÝµãÀàÐÍ
+ * @brief ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ýµï¿½ï¿½ï¿½ï¿½ï¿½
  */
 #define TYPE_TEMPLATE_INT    	JINT32
 #define TYPE_TEMPLATE_ENUM    	JINT32
@@ -44,13 +44,13 @@ typedef char      TYPE_DEF_TEMPLATE_STRING;
 typedef uint32_t  TYPE_DEF_TEMPLATE_TIME;
 typedef void *    TYPE_DEF_TEMPLATE_OBJECT;
 
-#ifdef EVENT_POST_ENABLED					//ÊÇ·ñÊ¹ÄÜÊý¾ÝÄ£°åµÄÊÂ¼þ¹¦ÄÜ
+#ifdef EVENT_POST_ENABLED					//ï¿½Ç·ï¿½Ê¹ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä£ï¿½ï¿½ï¿½ï¿½Â¼ï¿½ï¿½ï¿½ï¿½ï¿½
 
 #define TYPE_STR_INFO			"info"
 #define TYPE_STR_ALERT			"alert"
 #define TYPE_STR_FAULT			"fault"
 
-//Èç¹ûÊ¹ÓÃÊÂ¼þÊ±¼ä´Á£¬±ØÐë±£Ö¤Ê±¼ä´ÁÊÇ×¼È·µÄUTCÊ±¼äms£¬·ñÔò»áÅÐ¶ÏÎª´íÎó
+//ï¿½ï¿½ï¿½Ê¹ï¿½ï¿½ï¿½Â¼ï¿½Ê±ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ë±£Ö¤Ê±ï¿½ï¿½ï¿½ï¿½ï¿½×¼È·ï¿½ï¿½UTCÊ±ï¿½ï¿½msï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ð¶ï¿½Îªï¿½ï¿½ï¿½ï¿½
 //#define  EVENT_TIMESTAMP_USED			 
 
 #define  FLAG_EVENT0 			(1U<<0)
@@ -74,11 +74,11 @@ typedef enum {
 }eEventType;
 
 typedef struct  _sEvent_{
-	char 	 *event_name;		 //ÊÂ¼þÃû³Æ	
-	char 	 *type;			 	 //ÊÂ¼þÀàÐÍ	
-    uint32_t timestamp;			 //ÊÂ¼þÊ±´Á	
-	uint8_t eventDataNum;		 //ÊÂ¼þÊôÐÔµã¸öÊý
-    DeviceProperty *pEventData;  //ÊÂ¼þÊôÐÔµã
+	char 	 *event_name;		 //ï¿½Â¼ï¿½ï¿½ï¿½ï¿½ï¿½	
+	char 	 *type;			 	 //ï¿½Â¼ï¿½ï¿½ï¿½ï¿½ï¿½	
+    uint32_t timestamp;			 //ï¿½Â¼ï¿½Ê±ï¿½ï¿½	
+	uint8_t eventDataNum;		 //ï¿½Â¼ï¿½ï¿½ï¿½ï¿½Ôµï¿½ï¿½ï¿½ï¿½
+    DeviceProperty *pEventData;  //ï¿½Â¼ï¿½ï¿½ï¿½ï¿½Ôµï¿½
 } sEvent;
 
 #endif
@@ -89,21 +89,21 @@ typedef enum _eControlReplyCode_{
 }eReplyCode;
 
 /**
- * @brief control msg reply ²ÎÊý
+ * @brief control msg reply ï¿½ï¿½ï¿½ï¿½
  */
 typedef struct _sControlReplyPara {
 
-    uint32_t  timeout_ms;         						      // ÇëÇó³¬Ê±Ê±¼ä, µ¥Î»:ms
+    uint32_t  timeout_ms;         						      // ï¿½ï¿½ï¿½ï¿½Ê±Ê±ï¿½ï¿½, ï¿½ï¿½Î»:ms
     
-    eReplyCode   code;    							  // »Ø¸´code£¬0£º³É¹¦ ·Ç0£ºÊ§°Ü
+    eReplyCode   code;    							  // ï¿½Ø¸ï¿½codeï¿½ï¿½0ï¿½ï¿½ï¿½É¹ï¿½ ï¿½ï¿½0ï¿½ï¿½Ê§ï¿½ï¿½
 
-    char      status_msg[MAX_CONTORL_REPLY_STATUS_LEN];       // ¸½¼ÓÐÅÏ¢
+    char      status_msg[MAX_CONTORL_REPLY_STATUS_LEN];       // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ï¢
 
 } sReplyPara;
 
 
 /**
- * @brief ¶¨ÒåÊý¾ÝÄ£°åµÄÊôÐÔ×´Ì¬
+ * @brief ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½×´Ì¬
  */
 typedef enum _eDataState_{
     eNOCHANGE = 0,
@@ -111,7 +111,7 @@ typedef enum _eDataState_{
 } eDataState;
 
 /**
- * @brief ¶¨ÒåÊý¾ÝÄ£°åµÄÊôÐÔ½á¹¹
+ * @brief ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ô½á¹¹
  */
 typedef struct {
     DeviceProperty data_property;
@@ -119,7 +119,7 @@ typedef struct {
 } sDataPoint;
 
 /**
- * @brief »ñÈ¡data template client
+ * @brief ï¿½ï¿½È¡data template client
  *
  * @return ShadowClient
  */
@@ -127,157 +127,157 @@ void *get_template_client(void);
 
 
 /**
- * @brief ¹¹ÔìTemplateClient
+ * @brief ï¿½ï¿½ï¿½ï¿½TemplateClient
  *
- * @param client ´ý·µ»ØµÄ¹¹Ôì³É¹¦µÄdata template client
+ * @param client ï¿½ï¿½ï¿½ï¿½ï¿½ØµÄ¹ï¿½ï¿½ï¿½É¹ï¿½ï¿½ï¿½data template client
  *
- * @return ·µ»ØNULL: ¹¹ÔìÊ§°Ü
+ * @return ï¿½ï¿½ï¿½ï¿½NULL: ï¿½ï¿½ï¿½ï¿½Ê§ï¿½ï¿½
  */
 int IOT_Template_Construct(void **client);
 
 /**
- * @brief ¿Í»§¶ËÄ¿Ç°ÊÇ·ñÒÑÁ¬½Ó
+ * @brief ï¿½Í»ï¿½ï¿½ï¿½Ä¿Ç°ï¿½Ç·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
  *
- * @param pClient Template Client½á¹¹Ìå
- * @return ·µ»Øtrue, ±íÊ¾¿Í»§¶ËÒÑÁ¬½Ó
+ * @param pClient Template Clientï¿½á¹¹ï¿½ï¿½
+ * @return ï¿½ï¿½ï¿½ï¿½true, ï¿½ï¿½Ê¾ï¿½Í»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
  */
 bool IOT_Template_IsConnected(void *handle);
 
 /**
- * @brief Ïú»ÙTemplateClient ¹Ø±ÕMQTTÁ¬½Ó
+ * @brief ï¿½ï¿½ï¿½ï¿½TemplateClient ï¿½Ø±ï¿½MQTTï¿½ï¿½ï¿½ï¿½
  *
- * @param pClient TemplateClient¶ÔÏó
+ * @param pClient TemplateClientï¿½ï¿½ï¿½ï¿½
  *
- * @return ·µ»ØQCLOUD_ERR_SUCCESS, ±íÊ¾³É¹¦
+ * @return ï¿½ï¿½ï¿½ï¿½QCLOUD_ERR_SUCCESS, ï¿½ï¿½Ê¾ï¿½É¹ï¿½
  */
 int IOT_Template_Destroy(void *handle);
 
 /**
- * @brief ÏûÏ¢½ÓÊÕ, ÊÂ¼þ»Ø¸´³¬Ê±¹ÜÀí, ³¬Ê±ÇëÇó´¦Àí
+ * @brief ï¿½ï¿½Ï¢ï¿½ï¿½ï¿½ï¿½, ï¿½Â¼ï¿½ï¿½Ø¸ï¿½ï¿½ï¿½Ê±ï¿½ï¿½ï¿½ï¿½, ï¿½ï¿½Ê±ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
  *
  * @param handle     data template client
- * @param timeout_ms ³¬Ê±Ê±¼ä, µ¥Î»:ms
+ * @param timeout_ms ï¿½ï¿½Ê±Ê±ï¿½ï¿½, ï¿½ï¿½Î»:ms
  */
 void IOT_Template_Yield(void *handle, uint32_t timeout_ms);
 
 
 /**
- * @brief ×¢²áµ±Ç°Éè±¸µÄÉè±¸ÊôÐÔ
+ * @brief ×¢ï¿½áµ±Ç°ï¿½è±¸ï¿½ï¿½ï¿½è±¸ï¿½ï¿½ï¿½ï¿½
  *
- * @param pClient    Client½á¹¹Ìå
- * @param pProperty  Éè±¸ÊôÐÔ
- * @param callback   Éè±¸ÊôÐÔ¸üÐÂ»Øµ÷´¦Àíº¯Êý
- * @return           ·µ»ØQCLOUD_ERR_SUCCESS, ±íÊ¾ÇëÇó³É¹¦
+ * @param pClient    Clientï¿½á¹¹ï¿½ï¿½
+ * @param pProperty  ï¿½è±¸ï¿½ï¿½ï¿½ï¿½
+ * @param callback   ï¿½è±¸ï¿½ï¿½ï¿½Ô¸ï¿½ï¿½Â»Øµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+ * @return           ï¿½ï¿½ï¿½ï¿½QCLOUD_ERR_SUCCESS, ï¿½ï¿½Ê¾ï¿½ï¿½ï¿½ï¿½É¹ï¿½
  */
 int IOT_Template_Register_Property(void *handle, DeviceProperty *pProperty, OnPropRegCallback callback);
 
 /**
- * @brief É¾³ýÒÑ¾­×¢²á¹ýµÄÉè±¸ÊôÐÔ
+ * @brief É¾ï¿½ï¿½ï¿½Ñ¾ï¿½×¢ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½è±¸ï¿½ï¿½ï¿½ï¿½
  *
- * @param pClient    Client½á¹¹Ìå
- * @param pProperty  Éè±¸ÊôÐÔ
- * @return           ·µ»ØQCLOUD_ERR_SUCCESS, ±íÊ¾ÇëÇó³É¹¦
+ * @param pClient    Clientï¿½á¹¹ï¿½ï¿½
+ * @param pProperty  ï¿½è±¸ï¿½ï¿½ï¿½ï¿½
+ * @return           ï¿½ï¿½ï¿½ï¿½QCLOUD_ERR_SUCCESS, ï¿½ï¿½Ê¾ï¿½ï¿½ï¿½ï¿½É¹ï¿½
  */
 int IOT_Template_UnRegister_Property(void *handle, DeviceProperty *pProperty);
 
 /**
- * @brief ÔÚJSONÎÄµµÖÐÌí¼Óreported×Ö¶Î£¬²»¸²¸Ç¸üÐÂ
+ * @brief ï¿½ï¿½JSONï¿½Äµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½reportedï¿½Ö¶Î£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ç¸ï¿½ï¿½ï¿½
  *
  *
- * @param jsonBuffer    Îª´æ´¢JSONÎÄµµ×¼±¸µÄ×Ö·û´®»º³åÇø
- * @param sizeOfBuffer  »º³åÇø´óÐ¡
- * @param count         ¿É±ä²ÎÊýµÄ¸öÊý, ¼´ÐèÉÏ±¨µÄÉè±¸ÊôÐÔµÄ¸öÊý
- * @return              ·µ»ØQCLOUD_ERR_SUCCESS, ±íÊ¾³É¹¦
+ * @param jsonBuffer    Îªï¿½æ´¢JSONï¿½Äµï¿½×¼ï¿½ï¿½ï¿½ï¿½ï¿½Ö·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+ * @param sizeOfBuffer  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ð¡
+ * @param count         ï¿½É±ï¿½ï¿½ï¿½ï¿½ï¿½Ä¸ï¿½ï¿½ï¿½, ï¿½ï¿½ï¿½ï¿½ï¿½Ï±ï¿½ï¿½ï¿½ï¿½è±¸ï¿½ï¿½ï¿½ÔµÄ¸ï¿½ï¿½ï¿½
+ * @return              ï¿½ï¿½ï¿½ï¿½QCLOUD_ERR_SUCCESS, ï¿½ï¿½Ê¾ï¿½É¹ï¿½
  */
 int IOT_Template_JSON_ConstructReportArray(void *handle, char *jsonBuffer, size_t sizeOfBuffer, uint8_t count, DeviceProperty *pDeviceProperties[]); 
 
 /**
- * @brief  Êý¾ÝÄ£°åÒì²½·½Ê½ÉÏ±¨Êý¾Ý
+ * @brief  ï¿½ï¿½ï¿½ï¿½Ä£ï¿½ï¿½ï¿½ì²½ï¿½ï¿½Ê½ï¿½Ï±ï¿½ï¿½ï¿½ï¿½ï¿½
  *
  * @param pClient             data template client
- * @param pJsonDoc          ´ýÉÏ±¨µÄÊý¾ÝÄ£°åµÄÎÄµµÊý¾Ý   
- * @param sizeOfBuffer      ÎÄµµ³¤¶È
- * @param callback            ÉÏ±¨Êý¾ÝµÄ ÏìÓ¦´¦Àí»Øµ÷º¯Êý
- * @param userContext       ÓÃ»§Êý¾Ý, ÇëÇóÏìÓ¦·µ»ØÊ±Í¨¹ý»Øµ÷º¯Êý·µ»Ø
- * @param timeout_ms        ÇëÇó³¬Ê±Ê±¼ä, µ¥Î»:ms
- * @return                  ·µ»ØQCLOUD_ERR_SUCCESS, ±íÊ¾ÉÏ±¨³É¹¦
+ * @param pJsonDoc          ï¿½ï¿½ï¿½Ï±ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä£ï¿½ï¿½ï¿½ï¿½Äµï¿½ï¿½ï¿½ï¿½ï¿½   
+ * @param sizeOfBuffer      ï¿½Äµï¿½ï¿½ï¿½ï¿½ï¿½
+ * @param callback            ï¿½Ï±ï¿½ï¿½ï¿½ï¿½Ýµï¿½ ï¿½ï¿½Ó¦ï¿½ï¿½ï¿½ï¿½ï¿½Øµï¿½ï¿½ï¿½ï¿½ï¿½
+ * @param userContext       ï¿½Ã»ï¿½ï¿½ï¿½ï¿½ï¿½, ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ó¦ï¿½ï¿½ï¿½ï¿½Ê±Í¨ï¿½ï¿½ï¿½Øµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+ * @param timeout_ms        ï¿½ï¿½ï¿½ï¿½Ê±Ê±ï¿½ï¿½, ï¿½ï¿½Î»:ms
+ * @return                  ï¿½ï¿½ï¿½ï¿½QCLOUD_ERR_SUCCESS, ï¿½ï¿½Ê¾ï¿½Ï±ï¿½ï¿½É¹ï¿½
  */
 int IOT_Template_Report(void *handle, char *pJsonDoc, size_t sizeOfBuffer, OnReplyCallback callback, void *userContext, uint32_t timeout_ms);
 
 /**
- * @brief  Êý¾ÝÄ£°åÍ¬²½·½Ê½ÉÏ±¨Êý¾Ý
+ * @brief  ï¿½ï¿½ï¿½ï¿½Ä£ï¿½ï¿½Í¬ï¿½ï¿½ï¿½ï¿½Ê½ï¿½Ï±ï¿½ï¿½ï¿½ï¿½ï¿½
  *
  * @param pClient             data template client
- * @param pJsonDoc          ´ýÉÏ±¨µÄÊý¾ÝÄ£°åµÄÎÄµµÊý¾Ý   
- * @param sizeOfBuffer      ÎÄµµ³¤¶È
- * @param timeout_ms       ÇëÇó³¬Ê±Ê±¼ä, µ¥Î»:ms
- * @return                  ·µ»ØQCLOUD_ERR_SUCCESS, ±íÊ¾ÉÏ±¨³É¹¦
+ * @param pJsonDoc          ï¿½ï¿½ï¿½Ï±ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä£ï¿½ï¿½ï¿½ï¿½Äµï¿½ï¿½ï¿½ï¿½ï¿½   
+ * @param sizeOfBuffer      ï¿½Äµï¿½ï¿½ï¿½ï¿½ï¿½
+ * @param timeout_ms       ï¿½ï¿½ï¿½ï¿½Ê±Ê±ï¿½ï¿½, ï¿½ï¿½Î»:ms
+ * @return                  ï¿½ï¿½ï¿½ï¿½QCLOUD_ERR_SUCCESS, ï¿½ï¿½Ê¾ï¿½Ï±ï¿½ï¿½É¹ï¿½
  */
 int IOT_Template_Report_Sync(void *handle, char *pJsonDoc, size_t sizeOfBuffer, uint32_t timeout_ms);
 
 
  /**
-  * @brief	Òì²½·½Ê½»ñÈ¡Êý¾ÝÔÆ¶ËÊý¾ÝÄ£°å×´Ì¬
-  *                 Ò»°ãÓÃÓÚÍ¬²½Éè±¸ÀëÏßÆÚ¼ä·þÎñ¶ËµÄÏÂÐÐÊý¾Ý
+  * @brief	ï¿½ì²½ï¿½ï¿½Ê½ï¿½ï¿½È¡ï¿½ï¿½ï¿½ï¿½ï¿½Æ¶ï¿½ï¿½ï¿½ï¿½ï¿½Ä£ï¿½ï¿½×´Ì¬
+  *                 Ò»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Í¬ï¿½ï¿½ï¿½è±¸ï¿½ï¿½ï¿½ï¿½ï¿½Ú¼ï¿½ï¿½ï¿½ï¿½Ëµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
   *
   * @param pClient		   data template client
-  * @param callback 		   Êý¾Ý»ñÈ¡ÇëÇóµÄ ÏìÓ¦´¦Àí»Øµ÷º¯Êý
-  * @param userContext	   ÓÃ»§Êý¾Ý, ÇëÇóÏìÓ¦·µ»ØÊ±Í¨¹ý»Øµ÷º¯Êý·µ»Ø
-  * @param timeout_ms	   ÇëÇó³¬Ê±Ê±¼ä, µ¥Î»:ms
-  * @return 				  ·µ»ØQCLOUD_ERR_SUCCESS, ±íÊ¾ÇëÇó³É¹¦
+  * @param callback 		   ï¿½ï¿½ï¿½Ý»ï¿½È¡ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ó¦ï¿½ï¿½ï¿½ï¿½ï¿½Øµï¿½ï¿½ï¿½ï¿½ï¿½
+  * @param userContext	   ï¿½Ã»ï¿½ï¿½ï¿½ï¿½ï¿½, ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ó¦ï¿½ï¿½ï¿½ï¿½Ê±Í¨ï¿½ï¿½ï¿½Øµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+  * @param timeout_ms	   ï¿½ï¿½ï¿½ï¿½Ê±Ê±ï¿½ï¿½, ï¿½ï¿½Î»:ms
+  * @return 				  ï¿½ï¿½ï¿½ï¿½QCLOUD_ERR_SUCCESS, ï¿½ï¿½Ê¾ï¿½ï¿½ï¿½ï¿½É¹ï¿½
   */
 int IOT_Template_GetStatus(void *handle, OnReplyCallback callback, void *userContext, uint32_t timeout_ms);
 
  /**
-  * @brief	Í¬²½·½Ê½»ñÈ¡Êý¾ÝÔÆ¶ËÊý¾ÝÄ£°å×´Ì¬
+  * @brief	Í¬ï¿½ï¿½ï¿½ï¿½Ê½ï¿½ï¿½È¡ï¿½ï¿½ï¿½ï¿½ï¿½Æ¶ï¿½ï¿½ï¿½ï¿½ï¿½Ä£ï¿½ï¿½×´Ì¬
   * @param pClient		   data template client
-  * @param timeout_ms	   ÇëÇó³¬Ê±Ê±¼ä, µ¥Î»:ms
-  * @return 				  ·µ»ØQCLOUD_ERR_SUCCESS, ±íÊ¾ÇëÇó³É¹¦
+  * @param timeout_ms	   ï¿½ï¿½ï¿½ï¿½Ê±Ê±ï¿½ï¿½, ï¿½ï¿½Î»:ms
+  * @return 				  ï¿½ï¿½ï¿½ï¿½QCLOUD_ERR_SUCCESS, ï¿½ï¿½Ê¾ï¿½ï¿½ï¿½ï¿½É¹ï¿½
   */
 int IOT_Template_GetStatus_sync(void *handle, uint32_t timeout_ms);
 
 /**
- * @brief  É¾³ýÀëÏßÆÚ¼äµÄcontrol data
+ * @brief  É¾ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ú¼ï¿½ï¿½control data
  * @param pClient		  data template client
- * @param code	  		  0£º³É¹¦     ·Ç0£ºÊ§°Ü
- * @param pClientToken	  ¶ÔÓ¦µÄget_status_reply	ÖÐµÄclientToken
- * @return					 ·µ»ØQCLOUD_ERR_SUCCESS, ±íÊ¾´¦Àí³É¹¦
+ * @param code	  		  0ï¿½ï¿½ï¿½É¹ï¿½     ï¿½ï¿½0ï¿½ï¿½Ê§ï¿½ï¿½
+ * @param pClientToken	  ï¿½ï¿½Ó¦ï¿½ï¿½get_status_reply	ï¿½Ðµï¿½clientToken
+ * @return					 ï¿½ï¿½ï¿½ï¿½QCLOUD_ERR_SUCCESS, ï¿½ï¿½Ê¾ï¿½ï¿½ï¿½ï¿½ï¿½É¹ï¿½
  */
 int IOT_Template_ClearControl(void *handle, char *pClientToken, OnRequestCallback callback, uint32_t timeout_ms); 
 
 
 /**
- * @brief  »Ø¸´ÏÂÐÐcontrolÏûÏ¢
+ * @brief  ï¿½Ø¸ï¿½ï¿½ï¿½ï¿½ï¿½controlï¿½ï¿½Ï¢
  * @param pClient		   data template client
- * @param jsonBuffer		   ÓÃÓÚ¹¹Ôì»Ø¸´°üµÄÊý¾Ýbuffer
- * @param sizeOfBuffer	  Êý¾Ý³¤¶È
- *	@param replyPara		  »Ø¸´²ÎÊý£¬³É¹¦/Ê§°Ü¼°¶ÔÓ¦µÄ¸½¼ÓÐÅÏ¢  
- * @return					 ·µ»ØQCLOUD_ERR_SUCCESS, ±íÊ¾¹¹Ôì³É¹¦
+ * @param jsonBuffer		   ï¿½ï¿½ï¿½Ú¹ï¿½ï¿½ï¿½Ø¸ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½buffer
+ * @param sizeOfBuffer	  ï¿½ï¿½ï¿½Ý³ï¿½ï¿½ï¿½
+ *	@param replyPara		  ï¿½Ø¸ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½É¹ï¿½/Ê§ï¿½Ü¼ï¿½ï¿½ï¿½Ó¦ï¿½Ä¸ï¿½ï¿½ï¿½ï¿½ï¿½Ï¢  
+ * @return					 ï¿½ï¿½ï¿½ï¿½QCLOUD_ERR_SUCCESS, ï¿½ï¿½Ê¾ï¿½ï¿½ï¿½ï¿½É¹ï¿½
  */ 
 int IOT_Template_ControlReply(void *handle, char *pJsonDoc, size_t sizeOfBuffer, sReplyPara *replyPara);
 
 /**
- * @brief  ¹¹ÔìÏµÍ³ÐÅÏ¢ÉÏ±¨jsonÊý¾Ý°ü
+ * @brief  ï¿½ï¿½ï¿½ï¿½ÏµÍ³ï¿½ï¿½Ï¢ï¿½Ï±ï¿½jsonï¿½ï¿½ï¿½Ý°ï¿½
  * @param pClient		   data template client
- * @param jsonBuffer	   ÓÃÓÚ¹¹ÔìÊý¾Ýbuffer
- * @param sizeOfBuffer	   Êý¾Ý³¤¶È
- * @param pPlatInfo		   Æ½Ì¨ÏµÍ³ÐÅÏ¢£¬±ØÐë 
- * @param pSelfInfo		   Éè±¸ÉÌ×Ô¶¨ÒåµÄÏµÍ³ÐÅÏ¢£¬¿ÉÑ¡
- * @return				   ·µ»ØQCLOUD_ERR_SUCCESS, ±íÊ¾¹¹Ôì³É¹¦
+ * @param jsonBuffer	   ï¿½ï¿½ï¿½Ú¹ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½buffer
+ * @param sizeOfBuffer	   ï¿½ï¿½ï¿½Ý³ï¿½ï¿½ï¿½
+ * @param pPlatInfo		   Æ½Ì¨ÏµÍ³ï¿½ï¿½Ï¢ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ 
+ * @param pSelfInfo		   ï¿½è±¸ï¿½ï¿½ï¿½Ô¶ï¿½ï¿½ï¿½ï¿½ÏµÍ³ï¿½ï¿½Ï¢ï¿½ï¿½ï¿½ï¿½Ñ¡
+ * @return				   ï¿½ï¿½ï¿½ï¿½QCLOUD_ERR_SUCCESS, ï¿½ï¿½Ê¾ï¿½ï¿½ï¿½ï¿½É¹ï¿½
 
- *ÏµÍ³ÐÅÏ¢ÉÏ±¨°ü¸ñÊ½
+ *ÏµÍ³ï¿½ï¿½Ï¢ï¿½Ï±ï¿½ï¿½ï¿½ï¿½ï¿½Ê½
 * {
 *  "method": "report_info",
 *  "clientToken": "client-token1618",
 *  "params": {
-*  "module_hardinfo": "Ä£×é¾ßÌåÓ²¼þÐÍºÅ  N10,,´øÄ£×éÉè±¸±ØÌî",
-*  "module_softinfo":  "Ä£×éÈí¼þ°æ±¾,´øÄ£×éÉè±¸±ØÌî",
-*  "fw_ver":       "mcu¹Ì¼þ°æ±¾,±ØÌî",
-*  "imei":       "Éè±¸imeiºÅ£¬¿ÉÑ¡ÉÏ±¨",
-*  "lat":        "Î³¶È£¬Ðè»»ËãÎª10½øÖÆ,¿ÉÑ¡ÉÏ±¨,ÐèÒªÎ»ÖÃ·þÎñÉè±¸±ØÌî,ÒÆ¶¯Éè±¸ÐèÒªÊµÊ±»ñÈ¡"
-*  "lon":        "¾­¶È£¬Ðè»»ËãÎª10½øÖÆ,¿ÉÑ¡ÉÏ±¨,ÐèÒªÎ»ÖÃ·þÎñÉè±¸±ØÌî,ÒÆ¶¯Éè±¸ÐèÒªÊµÊ±»ñÈ¡",
+*  "module_hardinfo": "Ä£ï¿½ï¿½ï¿½ï¿½ï¿½Ó²ï¿½ï¿½ï¿½Íºï¿½  N10,,ï¿½ï¿½Ä£ï¿½ï¿½ï¿½è±¸ï¿½ï¿½ï¿½ï¿½",
+*  "module_softinfo":  "Ä£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½æ±¾,ï¿½ï¿½Ä£ï¿½ï¿½ï¿½è±¸ï¿½ï¿½ï¿½ï¿½",
+*  "fw_ver":       "mcuï¿½Ì¼ï¿½ï¿½æ±¾,ï¿½ï¿½ï¿½ï¿½",
+*  "imei":       "ï¿½è±¸imeiï¿½Å£ï¿½ï¿½ï¿½Ñ¡ï¿½Ï±ï¿½",
+*  "lat":        "Î³ï¿½È£ï¿½ï¿½è»»ï¿½ï¿½Îª10ï¿½ï¿½ï¿½ï¿½,ï¿½ï¿½Ñ¡ï¿½Ï±ï¿½,ï¿½ï¿½ÒªÎ»ï¿½Ã·ï¿½ï¿½ï¿½ï¿½è±¸ï¿½ï¿½ï¿½ï¿½,ï¿½Æ¶ï¿½ï¿½è±¸ï¿½ï¿½ÒªÊµÊ±ï¿½ï¿½È¡"
+*  "lon":        "ï¿½ï¿½ï¿½È£ï¿½ï¿½è»»ï¿½ï¿½Îª10ï¿½ï¿½ï¿½ï¿½,ï¿½ï¿½Ñ¡ï¿½Ï±ï¿½,ï¿½ï¿½ÒªÎ»ï¿½Ã·ï¿½ï¿½ï¿½ï¿½è±¸ï¿½ï¿½ï¿½ï¿½,ï¿½Æ¶ï¿½ï¿½è±¸ï¿½ï¿½ÒªÊµÊ±ï¿½ï¿½È¡",
 *  "device_label": {
-*    "append_info": "Éè±¸ÉÌ×Ô¶¨ÒåµÄ²úÆ·¸½¼ÓÐÅÏ¢"
+*    "append_info": "ï¿½è±¸ï¿½ï¿½ï¿½Ô¶ï¿½ï¿½ï¿½Ä²ï¿½Æ·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ï¢"
 * ...
 *   }
 * }
@@ -285,33 +285,33 @@ int IOT_Template_ControlReply(void *handle, char *pJsonDoc, size_t sizeOfBuffer,
 int IOT_Template_JSON_ConstructSysInfo(void *handle, char *jsonBuffer, size_t sizeOfBuffer, DeviceProperty *pPlatInfo, DeviceProperty *pSelfInfo); 
 
 /**
- * @brief Òì²½·½Ê½ÉÏ±¨ÏµÍ³ÐÅÏ¢
+ * @brief ï¿½ì²½ï¿½ï¿½Ê½ï¿½Ï±ï¿½ÏµÍ³ï¿½ï¿½Ï¢
  * @param pClient		   data template client
- * @param jsonBuffer	   ÏµÍ³ÐÅÏ¢Json°ü
- * @param sizeOfBuffer	   ÏµÍ³ÐÅÏ¢Json°ü³¤¶È
- * @param callback		   ÏìÓ¦»Øµ÷
- * @param userContext	   ÓÃ»§Êý¾Ý, ÏìÓ¦·µ»ØÊ±Í¨¹ý»Øµ÷º¯Êý·µ»Ø
- * @param timeout_ms	   ÏìÓ¦³¬Ê±Ê±¼ä, µ¥Î»:ms
- * @return				   ·µ»ØQCLOUD_ERR_SUCCESS, ±íÊ¾ÉÏ±¨³É¹¦
+ * @param jsonBuffer	   ÏµÍ³ï¿½ï¿½Ï¢Jsonï¿½ï¿½
+ * @param sizeOfBuffer	   ÏµÍ³ï¿½ï¿½Ï¢Jsonï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+ * @param callback		   ï¿½ï¿½Ó¦ï¿½Øµï¿½
+ * @param userContext	   ï¿½Ã»ï¿½ï¿½ï¿½ï¿½ï¿½, ï¿½ï¿½Ó¦ï¿½ï¿½ï¿½ï¿½Ê±Í¨ï¿½ï¿½ï¿½Øµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+ * @param timeout_ms	   ï¿½ï¿½Ó¦ï¿½ï¿½Ê±Ê±ï¿½ï¿½, ï¿½ï¿½Î»:ms
+ * @return				   ï¿½ï¿½ï¿½ï¿½QCLOUD_ERR_SUCCESS, ï¿½ï¿½Ê¾ï¿½Ï±ï¿½ï¿½É¹ï¿½
 */
 int IOT_Template_Report_SysInfo(void *handle, char *pJsonDoc, size_t sizeOfBuffer, OnReplyCallback callback, void *userContext, uint32_t timeout_ms);
 
 /**
- * @brief Í¬²½·½Ê½ÉÏ±¨ÏµÍ³ÐÅÏ¢
+ * @brief Í¬ï¿½ï¿½ï¿½ï¿½Ê½ï¿½Ï±ï¿½ÏµÍ³ï¿½ï¿½Ï¢
  * @param pClient		   data template client
- * @param jsonBuffer	   ÏµÍ³ÐÅÏ¢Json°ü
- * @param sizeOfBuffer	   ÏµÍ³ÐÅÏ¢Json°ü³¤¶È
- * @param timeout_ms	   Í¬²½µÈ´ýÏìÓ¦³¬Ê±Ê±¼ä, µ¥Î»:ms
- * @return				   ·µ»ØQCLOUD_ERR_SUCCESS, ±íÊ¾ÉÏ±¨³É¹¦
+ * @param jsonBuffer	   ÏµÍ³ï¿½ï¿½Ï¢Jsonï¿½ï¿½
+ * @param sizeOfBuffer	   ÏµÍ³ï¿½ï¿½Ï¢Jsonï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+ * @param timeout_ms	   Í¬ï¿½ï¿½ï¿½È´ï¿½ï¿½ï¿½Ó¦ï¿½ï¿½Ê±Ê±ï¿½ï¿½, ï¿½ï¿½Î»:ms
+ * @return				   ï¿½ï¿½ï¿½ï¿½QCLOUD_ERR_SUCCESS, ï¿½ï¿½Ê¾ï¿½Ï±ï¿½ï¿½É¹ï¿½
 */
 int IOT_Template_Report_SysInfo_Sync(void *handle, char *pJsonDoc, size_t sizeOfBuffer, uint32_t timeout_ms);
 
 
 #ifdef EVENT_POST_ENABLED
 /**
- * @brief ÊÂ¼þÉÏ±¨»Ø¸´»Øµ÷¡£
+ * @brief ï¿½Â¼ï¿½ï¿½Ï±ï¿½ï¿½Ø¸ï¿½ï¿½Øµï¿½ï¿½ï¿½
  *
- * @param msg    	 ÊÂ¼þÏìÓ¦·µ»ØµÄÎÄµµ
+ * @param msg    	 ï¿½Â¼ï¿½ï¿½ï¿½Ó¦ï¿½ï¿½ï¿½Øµï¿½ï¿½Äµï¿½
  * @param context    data template client
  *
  */
@@ -319,35 +319,35 @@ typedef void (*OnEventReplyCallback)(char *msg, void *context);
 
 
 /**
- * @brief ÉèÖÃÊÂ¼þ±ê¼Ç
+ * @brief ï¿½ï¿½ï¿½ï¿½ï¿½Â¼ï¿½ï¿½ï¿½ï¿½
  *
- * @param  flag  ÉèÖÃ·¢ÉúµÄÊÂ¼þ¼¯
+ * @param  flag  ï¿½ï¿½ï¿½Ã·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Â¼ï¿½ï¿½ï¿½
  */
 void IOT_Event_setFlag(void *client, uint32_t flag);
 
 /**
- * @brief Çå³ýÊÂ¼þ±ê¼Ç
+ * @brief ï¿½ï¿½ï¿½ï¿½Â¼ï¿½ï¿½ï¿½ï¿½
  *
- * @param  flag  ´ýÇå³ýµÄÊÂ¼þ¼¯
+ * @param  flag  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Â¼ï¿½ï¿½ï¿½
  */
 void IOT_Event_clearFlag(void *client, uint32_t flag);
 
 /**
- * @brief »ñÈ¡ÒÑÖÃÎ»µÄÊÂ¼þ¼¯
+ * @brief ï¿½ï¿½È¡ï¿½ï¿½ï¿½ï¿½Î»ï¿½ï¿½ï¿½Â¼ï¿½ï¿½ï¿½
  *
- * @return ÒÑÖÃÎ»µÄÊÂ¼þ¼¯
+ * @return ï¿½ï¿½ï¿½ï¿½Î»ï¿½ï¿½ï¿½Â¼ï¿½ï¿½ï¿½
  */
 uint32_t IOT_Event_getFlag(void *client);
 
 /**
- * @brief ÊÂ¼þclient³õÊ¼»¯£¬Ê¹ÓÃÊÂ¼þ¹¦ÄÜÇ°ÐèÏÈµ÷ÓÃ
+ * @brief ï¿½Â¼ï¿½clientï¿½ï¿½Ê¼ï¿½ï¿½ï¿½ï¿½Ê¹ï¿½ï¿½ï¿½Â¼ï¿½ï¿½ï¿½ï¿½ï¿½Ç°ï¿½ï¿½ï¿½Èµï¿½ï¿½ï¿½
  *
- * @param c    shadow ÊµÀýÖ¸Õë
+ * @param c    shadow Êµï¿½ï¿½Ö¸ï¿½ï¿½
  */
 int IOT_Event_Init(void *c);
 
 /**
- * @brief ´¦ÀíÊÂ¼þ¶ÓÁÐÖÐÒÑ¾­³¬Ê±µÄÇëÇó
+ * @brief ï¿½ï¿½ï¿½ï¿½ï¿½Â¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ñ¾ï¿½ï¿½ï¿½Ê±ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
  * 
  * @param client   data template client
  */
@@ -356,25 +356,25 @@ void handle_template_expired_event(void *client);
 
 
 /**
- * @brief ÊÂ¼þÉÏ±¨£¬´«ÈëÊÂ¼þÊý×é£¬SDKÍê³ÉÊÂ¼þµÄjson¸ñÊ½·â×°
- * @param pClient shadow ÊµÀýÖ¸Õë
- * @param pJsonDoc    ÓÃÓÚ¹¹½¨json¸ñÊ½ÉÏ±¨ÐÅÏ¢µÄbuffer
- * @param sizeOfBuffer    ÓÃÓÚ¹¹½¨json¸ñÊ½ÉÏ±¨ÐÅÏ¢µÄbuffer´óÐ¡
- * @param event_count     ´ýÉÏ±¨µÄÊÂ¼þ¸öÊý
- * @param pEventArry	  ´ýÉÏ±¨µÄÊÂ¼þÊý×éÖ¸
- * @param replyCb	  ÊÂ¼þ»Ø¸´ÏûÏ¢µÄ»Øµ÷ 
+ * @brief ï¿½Â¼ï¿½ï¿½Ï±ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Â¼ï¿½ï¿½ï¿½ï¿½é£¬SDKï¿½ï¿½ï¿½ï¿½Â¼ï¿½ï¿½ï¿½jsonï¿½ï¿½Ê½ï¿½ï¿½×°
+ * @param pClient shadow Êµï¿½ï¿½Ö¸ï¿½ï¿½
+ * @param pJsonDoc    ï¿½ï¿½ï¿½Ú¹ï¿½ï¿½ï¿½jsonï¿½ï¿½Ê½ï¿½Ï±ï¿½ï¿½ï¿½Ï¢ï¿½ï¿½buffer
+ * @param sizeOfBuffer    ï¿½ï¿½ï¿½Ú¹ï¿½ï¿½ï¿½jsonï¿½ï¿½Ê½ï¿½Ï±ï¿½ï¿½ï¿½Ï¢ï¿½ï¿½bufferï¿½ï¿½Ð¡
+ * @param event_count     ï¿½ï¿½ï¿½Ï±ï¿½ï¿½ï¿½ï¿½Â¼ï¿½ï¿½ï¿½ï¿½ï¿½
+ * @param pEventArry	  ï¿½ï¿½ï¿½Ï±ï¿½ï¿½ï¿½ï¿½Â¼ï¿½ï¿½ï¿½ï¿½ï¿½Ö¸
+ * @param replyCb	  ï¿½Â¼ï¿½ï¿½Ø¸ï¿½ï¿½ï¿½Ï¢ï¿½Ä»Øµï¿½ 
  * @return @see IoT_Error_Code	  
  */
 int IOT_Post_Event(void *pClient, char *pJsonDoc, size_t sizeOfBuffer, uint8_t event_count, sEvent *pEventArry[], OnEventReplyCallback replyCb);                                            
 
 /**
- * @brief ÊÂ¼þÉÏ±¨£¬ÓÃ»§´«ÈëÒÑ¹¹½¨ºÃµÄÊÂ¼þµÄjson¸ñÊ½£¬SDKÔö¼ÓÊÂ¼þÍ·²¿¼´ÉÏ±¨
- * @param pClient shadow ÊµÀýÖ¸Õë
- * @param pJsonDoc    ÓÃÓÚ¹¹½¨json¸ñÊ½ÉÏ±¨ÐÅÏ¢µÄbuffer
- * @param sizeOfBuffer    ÓÃÓÚ¹¹½¨json¸ñÊ½ÉÏ±¨ÐÅÏ¢µÄbuffer´óÐ¡
- * @param pEventMsg     ´ýÉÏ±¨µÄÊÂ¼þjsonÐÅÏ¢ 
- *  jsonÊÂ¼þ¸ñÊ½£º
- *  µ¥¸öÊÂ¼þ£º
+ * @brief ï¿½Â¼ï¿½ï¿½Ï±ï¿½ï¿½ï¿½ï¿½Ã»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ñ¹ï¿½ï¿½ï¿½ï¿½Ãµï¿½ï¿½Â¼ï¿½ï¿½ï¿½jsonï¿½ï¿½Ê½ï¿½ï¿½SDKï¿½ï¿½ï¿½ï¿½ï¿½Â¼ï¿½Í·ï¿½ï¿½ï¿½ï¿½ï¿½Ï±ï¿½
+ * @param pClient shadow Êµï¿½ï¿½Ö¸ï¿½ï¿½
+ * @param pJsonDoc    ï¿½ï¿½ï¿½Ú¹ï¿½ï¿½ï¿½jsonï¿½ï¿½Ê½ï¿½Ï±ï¿½ï¿½ï¿½Ï¢ï¿½ï¿½buffer
+ * @param sizeOfBuffer    ï¿½ï¿½ï¿½Ú¹ï¿½ï¿½ï¿½jsonï¿½ï¿½Ê½ï¿½Ï±ï¿½ï¿½ï¿½Ï¢ï¿½ï¿½bufferï¿½ï¿½Ð¡
+ * @param pEventMsg     ï¿½ï¿½ï¿½Ï±ï¿½ï¿½ï¿½ï¿½Â¼ï¿½jsonï¿½ï¿½Ï¢ 
+ *  jsonï¿½Â¼ï¿½ï¿½ï¿½Ê½ï¿½ï¿½
+ *  ï¿½ï¿½ï¿½ï¿½ï¿½Â¼ï¿½ï¿½ï¿½
  *	 {"method": "event_post",
  *		"clientToken": "123",
  *		"version": "1.0",
@@ -387,7 +387,7 @@ int IOT_Post_Event(void *pClient, char *pJsonDoc, size_t sizeOfBuffer, uint8_t e
  *		}
  *	}
  *
- *  ¶à¸öÊÂ¼þ£º
+ *  ï¿½ï¿½ï¿½ï¿½Â¼ï¿½ï¿½ï¿½
  *	 {
  *		 "eventId": "PowerAlarm",
  *		 "type": "fatal",
@@ -408,7 +408,7 @@ int IOT_Post_Event(void *pClient, char *pJsonDoc, size_t sizeOfBuffer, uint8_t e
  *	 },
  *   ....
  *
- * @param replyCb	  ÊÂ¼þ»Ø¸´ÏûÏ¢µÄ»Øµ÷ 
+ * @param replyCb	  ï¿½Â¼ï¿½ï¿½Ø¸ï¿½ï¿½ï¿½Ï¢ï¿½Ä»Øµï¿½ 
  * @return @see IoT_Error_Code	  
  */
 int IOT_Post_Event_Raw(void *pClient, char *pJsonDoc, size_t sizeOfBuffer, char *pEventMsg, OnEventReplyCallback replyCb);                                            
@@ -418,28 +418,28 @@ int IOT_Post_Event_Raw(void *pClient, char *pJsonDoc, size_t sizeOfBuffer, char 
 
 #ifdef ACTION_ENABLED
 /**
- * @brief ×¢²áµ±Ç°Éè±¸µÄÐÐÎª
+ * @brief ×¢ï¿½áµ±Ç°ï¿½è±¸ï¿½ï¿½ï¿½ï¿½Îª
  *
- * @param pClient    Client½á¹¹Ìå
- * @param pProperty  Éè±¸ÊôÐÔ
- * @param callback   Éè±¸ÊôÐÔ¸üÐÂ»Øµ÷´¦Àíº¯Êý
- * @return           ·µ»ØQCLOUD_ERR_SUCCESS, ±íÊ¾ÇëÇó³É¹¦
+ * @param pClient    Clientï¿½á¹¹ï¿½ï¿½
+ * @param pProperty  ï¿½è±¸ï¿½ï¿½ï¿½ï¿½
+ * @param callback   ï¿½è±¸ï¿½ï¿½ï¿½Ô¸ï¿½ï¿½Â»Øµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+ * @return           ï¿½ï¿½ï¿½ï¿½QCLOUD_ERR_SUCCESS, ï¿½ï¿½Ê¾ï¿½ï¿½ï¿½ï¿½É¹ï¿½
  */
 
 int IOT_Template_Register_Action(void *handle, DeviceAction *pAction, OnActionHandleCallback callback);
 
 /**
- * @brief É¾³ýÒÑ¾­×¢²á¹ýµÄÉè±¸ÐÐÎª
+ * @brief É¾ï¿½ï¿½ï¿½Ñ¾ï¿½×¢ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½è±¸ï¿½ï¿½Îª
  *
- * @param pClient    Client½á¹¹Ìå
- * @param pProperty  Éè±¸ÊôÐÔ
- * @return           ·µ»ØQCLOUD_ERR_SUCCESS, ±íÊ¾ÇëÇó³É¹¦
+ * @param pClient    Clientï¿½á¹¹ï¿½ï¿½
+ * @param pProperty  ï¿½è±¸ï¿½ï¿½ï¿½ï¿½
+ * @return           ï¿½ï¿½ï¿½ï¿½QCLOUD_ERR_SUCCESS, ï¿½ï¿½Ê¾ï¿½ï¿½ï¿½ï¿½É¹ï¿½
  */
 
 int IOT_Template_UnRegister_Action(void *handle, DeviceAction *pAction); 
 
 /**
-* @brief Éè±¸ÐÐÎª»Ø¸´ 
+* @brief ï¿½è±¸ï¿½ï¿½Îªï¿½Ø¸ï¿½ 
 * @param pClient		  handle to data_template client
 * @param pClientToken	  correspond to the clientToken of action msg 
 * @param pJsonDoc	  	  data buffer for reply

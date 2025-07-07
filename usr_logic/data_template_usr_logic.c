@@ -1,6 +1,6 @@
 /*
  * Tencent is pleased to support the open source community by making IoT Hub available.
- * Copyright (C) 2019 THL A29 Limited, a Tencent company. All rights reserved.
+ * Copyright (C) 2019 Tencent. All rights reserved.
 
  * Licensed under the MIT License (the "License"); you may not use this file except in
  * compliance with the License. You may obtain a copy of the License at
@@ -127,7 +127,7 @@ static void OnControlMsgCallback(void *pClient, const char *pJsonValueBuffer, ui
 }
 
 /**
- * ×¢²áÊý¾ÝÄ£°åÊôÐÔ
+ * ×¢ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
  */
 static int _register_data_template_property(void *ptemplate_client)
 {
@@ -152,13 +152,13 @@ static void OnReportReplyCallback(void *pClient, Method method, ReplyAck replyAc
 }
 
 
-/*ÓÃ»§ÐèÒªÊµÏÖµÄÏÂÐÐÊý¾ÝµÄÒµÎñÂß¼­,´ýÓÃ»§ÊµÏÖ*/
+/*ï¿½Ã»ï¿½ï¿½ï¿½ÒªÊµï¿½Öµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ýµï¿½Òµï¿½ï¿½ï¿½ß¼ï¿½,ï¿½ï¿½ï¿½Ã»ï¿½Êµï¿½ï¿½*/
 static void deal_down_stream_user_logic(void *pClient, ProductDataDefine   * pData)
 {
 	Log_d("someting about your own product logic wait to be done");
 }
 
-/*ÓÃ»§ÐèÒªÊµÏÖµÄÉÏÐÐÊý¾ÝµÄÒµÎñÂß¼­,´Ë´¦½ö¹©Ê¾Àý*/
+/*ï¿½Ã»ï¿½ï¿½ï¿½ÒªÊµï¿½Öµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ýµï¿½Òµï¿½ï¿½ï¿½ß¼ï¿½,ï¿½Ë´ï¿½ï¿½ï¿½ï¿½ï¿½Ê¾ï¿½ï¿½*/
 static int deal_up_stream_user_logic(void *pClient, DeviceProperty *pReportDataList[], int *pCount)
 {
 	int i, j;
@@ -245,7 +245,7 @@ static void eventPostCheck(void *client)
 	sEvent *pEventList[EVENT_COUNTS];
 	uint8_t event_count;
 		
-	//ÊÂ¼þÉÏ±¨
+	//ï¿½Â¼ï¿½ï¿½Ï±ï¿½
 	IOT_Event_setFlag(client, FLAG_EVENT0|FLAG_EVENT1|FLAG_EVENT2);
 	eflag = IOT_Event_getFlag(client);
 	if((EVENT_COUNTS > 0 )&& (eflag > 0))
@@ -275,10 +275,10 @@ static void eventPostCheck(void *client)
 
 }
 
-/*ÓÃ»§ÐèÒªÊµÏÖÉè±¸ÐÅÏ¢»ñÈ¡,´Ë´¦Ê¾ÀýÊµÏÖ*/
+/*ï¿½Ã»ï¿½ï¿½ï¿½ÒªÊµï¿½ï¿½ï¿½è±¸ï¿½ï¿½Ï¢ï¿½ï¿½È¡,ï¿½Ë´ï¿½Ê¾ï¿½ï¿½Êµï¿½ï¿½*/
 static int _get_sys_info(void *handle, char *pJsonDoc, size_t sizeOfBuffer)
 {
-	/*Æ½Ì¨´¦Àí×Ö¶Î£¬±ØÑ¡×Ö¶ÎÖÁÉÙÓÐÒ»¸ö*/
+	/*Æ½Ì¨ï¿½ï¿½ï¿½ï¿½ï¿½Ö¶Î£ï¿½ï¿½ï¿½Ñ¡ï¿½Ö¶ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ò»ï¿½ï¿½*/
     DeviceProperty plat_info[] = {
      	{.key = "module_hardinfo", .type = TYPE_TEMPLATE_STRING, .data = "ESP8266"},
      	{.key = "module_softinfo", .type = TYPE_TEMPLATE_STRING, .data = "V1.0"},
@@ -286,13 +286,13 @@ static int _get_sys_info(void *handle, char *pJsonDoc, size_t sizeOfBuffer)
      	{.key = "imei", 		   .type = TYPE_TEMPLATE_STRING, .data = "11-22-33-44"},
      	{.key = "lat", 			   .type = TYPE_TEMPLATE_STRING, .data = "22.546015"},
      	{.key = "lon", 			   .type = TYPE_TEMPLATE_STRING, .data = "113.941125"},
-        {NULL, NULL, JINT32}  //½áÊø
+        {NULL, NULL, JINT32}  //ï¿½ï¿½ï¿½ï¿½
 	};
 		
-	/*×Ô¶¨Òå¸½¼ÓÐÅÏ¢*/
+	/*ï¿½Ô¶ï¿½ï¿½å¸½ï¿½ï¿½ï¿½ï¿½Ï¢*/
 	DeviceProperty self_info[] = {
         {.key = "append_info", .type = TYPE_TEMPLATE_STRING, .data = "your self define ifno"},
-        {NULL, NULL, JINT32}  //½áÊø
+        {NULL, NULL, JINT32}  //ï¿½ï¿½ï¿½ï¿½
 	};
 
 	return IOT_Template_JSON_ConstructSysInfo(handle, pJsonDoc, sizeOfBuffer, plat_info, self_info); 	
@@ -319,7 +319,7 @@ void data_template_demo_task(void *arg)
 		}
 
 		/*
-		 *×¢Òâ£ºmodule_register_network ÁªÍøÐèÒª¸ù¾ÝËùÑ¡Ä£×éÊÊÅäÐÞ¸ÄÊµÏÖ
+		 *×¢ï¿½â£ºmodule_register_network ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Òªï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ñ¡Ä£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Þ¸ï¿½Êµï¿½ï¿½
 		*/
 		Ret = module_register_network(eMODULE_ESP8266);
 		if(QCLOUD_RET_SUCCESS != Ret)
@@ -386,7 +386,7 @@ void data_template_demo_task(void *arg)
 		}
 #endif
 			
-		//ÉÏ±¨Éè±¸ÐÅÏ¢,Æ½Ì¨¸ù¾ÝÕâ¸öÐÅÏ¢Ìá¹©²úÆ·²ãÃæµÄÊý¾Ý·ÖÎö,Æ©ÈçÎ»ÖÃ·þÎñµÈ
+		//ï¿½Ï±ï¿½ï¿½è±¸ï¿½ï¿½Ï¢,Æ½Ì¨ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ï¢ï¿½á¹©ï¿½ï¿½Æ·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ý·ï¿½ï¿½ï¿½,Æ©ï¿½ï¿½Î»ï¿½Ã·ï¿½ï¿½ï¿½ï¿½
 		rc = _get_sys_info(client, sg_data_report_buffer, sg_data_report_buffersize);
 		if(QCLOUD_RET_SUCCESS == rc)
 		{
@@ -403,7 +403,7 @@ void data_template_demo_task(void *arg)
 			break;
 		}
 
-		//»ñÈ¡ÀëÏßÆÚ¼äÊý¾Ý
+		//ï¿½ï¿½È¡ï¿½ï¿½ï¿½ï¿½ï¿½Ú¼ï¿½ï¿½ï¿½ï¿½ï¿½
 		rc = IOT_Template_GetStatus_sync(client, QCLOUD_IOT_MQTT_COMMAND_TIMEOUT);
 		if (rc != QCLOUD_RET_SUCCESS) 
 		{
@@ -421,16 +421,16 @@ void data_template_demo_task(void *arg)
 			HAL_SleepMs(1000);
 			IOT_Template_Yield(client, 2000);
 			
-			/*·þÎñ¶ËÏÂÐÐÏûÏ¢£¬ÒµÎñ´¦ÀíÂß¼­1Èë¿Ú*/
+			/*ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ï¢ï¿½ï¿½Òµï¿½ï¿½ï¿½ï¿½ï¿½ß¼ï¿½1ï¿½ï¿½ï¿½*/
 			if (sg_control_msg_arrived) {	
 				
 				deal_down_stream_user_logic(client, &sg_ProductData);				
-				//ÒµÎñÂß¼­´¦ÀíÍêºóÐèÒªÍ¨Öª·þÎñ¶Ëcontrol msg ÒÑÊÕµ½£¬Çë·þÎñ¶ËÉ¾³ýcontrol msg£¬·ñÔò·þÎñ¶Ë»á±£Áôcontrol msg(Í¨¹ýGet statusÃüÁî¿ÉÒÔµÃµ½Î´É¾³ýµÄControlÊý¾Ý)
+				//Òµï¿½ï¿½ï¿½ß¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ÒªÍ¨Öªï¿½ï¿½ï¿½ï¿½ï¿½control msg ï¿½ï¿½ï¿½Õµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½É¾ï¿½ï¿½control msgï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ë»á±£ï¿½ï¿½control msg(Í¨ï¿½ï¿½Get statusï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ÔµÃµï¿½Î´É¾ï¿½ï¿½ï¿½ï¿½Controlï¿½ï¿½ï¿½ï¿½)
 				sReplyPara replyPara;
 				memset((char *)&replyPara, 0, sizeof(sReplyPara));
 				replyPara.code = eDEAL_SUCCESS;
 				replyPara.timeout_ms = QCLOUD_IOT_MQTT_COMMAND_TIMEOUT;						
-				replyPara.status_msg[0] = '\0';			//¿ÉÒÔÍ¨¹ý replyPara.status_msg Ìí¼Ó¸½¼ÓÏûÏ¢£¬Ò»°ãÔÚÊ§°ÜÇé¿öÏÂ²ÅÌí¼Ó
+				replyPara.status_msg[0] = '\0';			//ï¿½ï¿½ï¿½ï¿½Í¨ï¿½ï¿½ replyPara.status_msg ï¿½ï¿½ï¿½Ó¸ï¿½ï¿½ï¿½ï¿½ï¿½Ï¢ï¿½ï¿½Ò»ï¿½ï¿½ï¿½ï¿½Ê§ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Â²ï¿½ï¿½ï¿½ï¿½ï¿½
 				
 				rc = IOT_Template_ControlReply(client, sg_data_report_buffer, sg_data_report_buffersize, &replyPara);
 	            if (rc == QCLOUD_RET_SUCCESS) {
@@ -442,7 +442,7 @@ void data_template_demo_task(void *arg)
 	            }				
 			}	
 
-			/*Éè±¸ÉÏÐÐÏûÏ¢,ÒµÎñÂß¼­2Èë¿Ú*/								
+			/*ï¿½è±¸ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ï¢,Òµï¿½ï¿½ï¿½ß¼ï¿½2ï¿½ï¿½ï¿½*/								
 			if(QCLOUD_RET_SUCCESS == deal_up_stream_user_logic(client, pReportDataList, &ReportCont)){
 				
 				rc = IOT_Template_JSON_ConstructReportArray(client, sg_data_report_buffer, sg_data_report_buffersize, ReportCont, pReportDataList);
